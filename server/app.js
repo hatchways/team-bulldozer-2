@@ -20,9 +20,12 @@ app.use(express.static(join(__dirname, "public")));
 app.use("/", indexRouter);
 app.use("/ping", pingRouter);
 
+// mongoose connection
+require('./utils/mongoose')
+
 // catch 404 and forward to error handler
 app.use(function(req, res, next) {
-  next(createError(404));
+  next(createError.NotFound());
 });
 
 // error handler
