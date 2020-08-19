@@ -1,5 +1,5 @@
 # EXPRESS-STARTER
-## Installation
+## RFP: Peer mock technical interview platform
 Clone the repository
 
     git clone git@github.com:hatchways/team-bulldozer-2.git -b dev
