@@ -13,10 +13,12 @@ module.exports = (app) => {
             if (!user) {
               return done(null, false, { message: 'Incorrect credentials .' });
             }
-            if (!user.validPassword(password)) {
-              return done(null, false, { message: 'Incorrect credentials.' });
-            }
-            return done(null, user);
+          user.validPassword(password, (err, isMatch) => {
+              if (err || !isMatch) {
+                return done(null, false, { message: 'Incorrect credentials.' });
+              }
+              return done(null, user);
+            });
           });
         }
       ));

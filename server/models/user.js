@@ -48,8 +48,10 @@ userSchema.pre('save', async function(next) {
 
 })
 
-userSchema.methods.validPassword = async function(candidatePassword) {
-    const check = await bcrypt.compare(candidatePassword, this.password);
-    return check;
+userSchema.methods.validPassword = function(candidatePassword, cb) {
+    bcrypt.compare(candidatePassword, this.password, function(err, isMatch) {
+        if (err) return cb(err);
+        cb(null, isMatch);
+    });
 };
 module.exports = mongoose.model('User', userSchema);
