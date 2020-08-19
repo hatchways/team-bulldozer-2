@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const { Schema } = mongoose;
+const bcrypt = require('bcrypt');
 
 const profileSchema = new Schema({
     language : String,
@@ -26,7 +27,29 @@ const userSchema =  Schema({
         type: String,
         required : true
     },
+    salt :  String,
+       
     profile : { type: profileSchema}
 });
+//this code will be executed before saving a user 
+userSchema.pre('save', async function(next) {
+    
+    // only hash the password if it has been modified (or is new)
+    if (!this.isModified('password')) return next();
+    try {
+        const salt = await bcrypt.genSalt(16);
+        const hashedPassword = await bcrypt.hash(this.password, salt);
+        this.salt = salt;
+        this.password = hashedPassword;
+        
+    } catch (error) {
+        next(error);
+    }
 
+})
+
+userSchema.methods.validPassword = async function(candidatePassword) {
+    const check = await bcrypt.compare(candidatePassword, this.password);
+    return check;
+};
 module.exports = mongoose.model('User', userSchema);
