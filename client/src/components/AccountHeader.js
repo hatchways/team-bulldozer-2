@@ -13,7 +13,7 @@ const useStyles = makeStyles((theme) => ({
     padding: "10px 40px",
     borderRadius: "5em",
     fontWeight: "600",
-    fontSize: "13px",
+    fontSize: 13,
     textTransform: "uppercase",
     color: "#5E6676",
     [theme.breakpoints.down("xs")]: {
@@ -23,7 +23,7 @@ const useStyles = makeStyles((theme) => ({
   text: {
     marginRight: "20px",
     fontWeight: "600",
-    fontSize: "14px",
+    fontSize: 14,
     lineHeight: "3",
   },
 }));

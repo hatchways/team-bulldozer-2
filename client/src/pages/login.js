@@ -33,7 +33,7 @@ const useStyles = makeStyles((theme) => ({
 const Login = () => {
   const classes = useStyles();
 
-  const { login, errors, handleSubmit } = useForm();
+  const { register, handleSubmit, errors } = useForm();
 
   const [fields, setFields] = useState({
     username: "",
@@ -74,7 +74,7 @@ const Login = () => {
           id="username"
           placeholder="Username"
           name="username"
-          inputRef={login({ required: "Username is required" })}
+          inputRef={register({ required: "Username is required" })}
           onChange={(event) => handleChange("username", event)}
           helperText={errors.username ? errors.username.message : null}
           autoFocus
@@ -89,7 +89,7 @@ const Login = () => {
           required
           fullWidth
           name="password"
-          inputRef={login({
+          inputRef={register({
             required: "Password is required",
             minLength: {
               value: 6,

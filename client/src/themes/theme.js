@@ -7,10 +7,10 @@ export const theme = createMuiTheme({
       color: "#5E6676",
     },
     h1: {
-      fontSize: "40px",
+      fontSize: 40,
     },
     h6: {
-      fontSize: "16px",
+      fontSize: 16,
       lineHeight: "22px",
       fontWeight: "600",
     },
