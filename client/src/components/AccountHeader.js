@@ -16,6 +16,9 @@ const useStyles = makeStyles((theme) => ({
     fontSize: "13px",
     textTransform: "uppercase",
     color: "#5E6676",
+    [theme.breakpoints.down("xs")]: {
+      padding: "0px 20px",
+    },
   },
   text: {
     marginRight: "20px",

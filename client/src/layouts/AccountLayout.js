@@ -20,6 +20,12 @@ const useStyles = makeStyles((theme) => ({
     backgroundSize: "cover",
     backgroundPosition: "center",
   },
+  gridHeader: {
+    justifyContent: "flex-end",
+    [theme.breakpoints.down("xs")]: {
+      justifyContent: "flex-start",
+    },
+  },
 }));
 
 const AccountLayout = ({ children, titleHeader, buttonTitleHeader }) => {
@@ -29,7 +35,12 @@ const AccountLayout = ({ children, titleHeader, buttonTitleHeader }) => {
     <Grid container component="main" className={classes.root}>
       <Grid item xs={false} sm={3} md={4} className={classes.image} />
       <Grid item xs={12} sm={9} md={8} component={Paper} elevation={6} square>
-        <Grid container direction="row" justify="flex-end" alignItems="center">
+        <Grid
+          container
+          direction="row"
+          alignItems="center"
+          className={classes.gridHeader}
+        >
           <AccountHeader title={titleHeader} buttonTitle={buttonTitleHeader} />
         </Grid>
         {children}

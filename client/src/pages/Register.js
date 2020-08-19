@@ -10,6 +10,9 @@ const useStyles = makeStyles((theme) => ({
     margin: theme.spacing(8, 50, 20, 20),
     display: "flex",
     flexDirection: "column",
+    [theme.breakpoints.down("md")]: {
+      margin: theme.spacing(5),
+    },
   },
   input: {
     margin: "5px 0px 35px 0px ",
