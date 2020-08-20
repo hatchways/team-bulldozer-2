@@ -1,0 +1,25 @@
+# Make calls to the web APIs through VScode and the plugin REST Client.
+# To install the plugin see the Marketplace link https://marketplace.visualstudio.com/items?itemName=humao.rest-client
+
+### Home route
+GET http://localhost:3001/
+
+### Signup route
+POST http://localhost:3001/auth/register
+Content-Type: application/json
+
+{
+    "email" : "houssem2@exmaple.com",
+    "firstName" : "first name",
+    "lastName" : "last name",
+    "password" : "12"
+}
+
+### SignIn
+POST http://localhost:3001/auth/login
+Content-Type: application/json
+
+{
+    "email" : "houssem2@exmaple.com",
+    "password" : "1234@jh"
+}

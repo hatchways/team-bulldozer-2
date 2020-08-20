@@ -1,8 +1,16 @@
-const express = require("express");
-const router = express.Router();
+module.exports = (app) => {
 
-router.get("/welcome", function (req, res, next) {
-  res.status(200).send({ welcomeMessage: "Step 1 (completed)" });
-});
+  const express = require("express");
+  const router = express.Router(); 
 
-module.exports = router;
+  const homeRouter = require('./home')(router);
+  const authRouter = require('./auth')(router);
+
+  
+  app.use("/auth", authRouter);
+  app.use("/", homeRouter);
+
+  return app;
+}
+
+
