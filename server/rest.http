@@ -9,10 +9,11 @@ POST http://localhost:3001/auth/register
 Content-Type: application/json
 
 {
-    "email" : "houssem2@exmaple.com",
+    "email" : "houssem@example.com",
     "firstName" : "first name",
     "lastName" : "last name",
-    "password" : "12"
+    "password" : "123456",
+    "confirmPassword": "123456"
 }
 
 ### SignIn
@@ -20,6 +21,6 @@ POST http://localhost:3001/auth/login
 Content-Type: application/json
 
 {
-    "email" : "houssem2@exmaple.com",
-    "password" : "1234@jh"
+    "email" : "houssem@example.com",
+    "password" : "123456"
 }
