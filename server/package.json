@@ -8,6 +8,11 @@
     "test": "NODE_ENV=test ./node_modules/.bin/mocha --exit --timeout 30000",
     "lint": "eslint *.js"
   },
+  "config": {
+    "mongodbMemoryServer": {
+      "version": "latest"
+    }
+  },
   "dependencies": {
     "bcrypt": "^5.0.0",
     "cookie-parser": "~1.4.4",
