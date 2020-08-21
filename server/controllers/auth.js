@@ -25,6 +25,9 @@ exports.SignUpController = async (req, res, next) => {
 exports.SignInController = async (req, res, next) => {
     Authenticate(req, res, next, HttpStatus.OK)
 }
+exports.GetCurrentUserController = async(req, res, next) => {
+  return res.status(HttpStatus.OK).send(req.user);
+}
 
 function Authenticate(req, res, next, statusCode) {
     passport.authenticate('local', (err, user) => {

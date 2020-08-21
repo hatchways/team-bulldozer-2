@@ -1,3 +1,4 @@
+const { use } = require('passport');
 
 module.exports = (app) => {
 
@@ -28,7 +29,11 @@ module.exports = (app) => {
     });
     // used to deserialize the user
     passport.deserializeUser(function(id, done) {
-        User.findById(id, function(err, user) {
+        User.findById(id,{
+          password: false,
+          salt: false,
+          __v: false,
+        }, function(err, user) {
             done(err, user);
         });
     });

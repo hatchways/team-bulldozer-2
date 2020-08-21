@@ -24,3 +24,6 @@ Content-Type: application/json
     "email" : "houssem@example.com",
     "password" : "123456"
 }
+
+### Get /me  get current connected user
+GET http://localhost:3001/auth/me
