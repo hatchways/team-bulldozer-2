@@ -2,7 +2,7 @@ const { body} = require('express-validator');
 const PasswordMinLength = 6 ;
 
 const UserSchema = {
-    email : body('email').isEmail().normalizeEmail(),
+    email : body('email').isEmail().withMessage('Invalid email value').normalizeEmail(),
     password: body('password').isLength({ min: PasswordMinLength }),
     confirmPassword: body('confirmPassword')
         .isLength({ min: PasswordMinLength })
@@ -13,7 +13,7 @@ const UserSchema = {
           .withMessage("Passwords don't match."),
     firstName: body('firstName').isString()
         .notEmpty().withMessage( "FirstName is required"),
-    lastName: body('lastName').isString().notEmpty()
+    lastName: body('lastName').isString()
         .notEmpty().withMessage( "LastName is required"),
 }
 

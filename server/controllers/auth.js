@@ -8,7 +8,7 @@ exports.SignUpController = async (req, res, next) => {
         const { email, password , firstName, lastName } = req.body;
         const userExists = await User.exists({ email });
         if (userExists) {
-            res.status(HttpStatus.CONFLICT).send({ response: `Email ${email} already used!` });
+            res.status(HttpStatus.CONFLICT).send({ errors: {'email' : [`Email ${email} already used!`] } });
             return;
         }
         const user = new User({
