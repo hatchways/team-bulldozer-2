@@ -8,7 +8,7 @@ exports.SignUpController = async (req, res, next) => {
         const { email, password , firstName, lastName } = req.body;
         const userExists = await User.exists({ email });
         if (userExists) {
-            res.status(HttpStatus.CONFLICT).send({ response: `Email ${email} already used!` });
+            res.status(HttpStatus.CONFLICT).send({ errors: {'email' : [`Email ${email} already used!`] } });
             return;
         }
         const user = new User({
@@ -24,6 +24,9 @@ exports.SignUpController = async (req, res, next) => {
 //login controller
 exports.SignInController = async (req, res, next) => {
     Authenticate(req, res, next, HttpStatus.OK)
+}
+exports.GetCurrentUserController = async(req, res, next) => {
+  return res.status(HttpStatus.OK).send(req.user);
 }
 
 function Authenticate(req, res, next, statusCode) {

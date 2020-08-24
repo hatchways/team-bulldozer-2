@@ -1,15 +1,20 @@
 const {validationResult} = require('express-validator');
 const HttpStatus = require('http-status-codes');
+const _ = require('lodash');
 
 module.exports = (validations) => {
     return async (req, res, next) => {
       await Promise.all(validations.map(validation => validation.run(req)));
   
-      const errors = validationResult(req);
+      let errors = validationResult(req);
       if (errors.isEmpty()) {
         return next();
       }
-  
-      res.status(HttpStatus.BAD_REQUEST).json({ errors: errors.array() });
+      errors = _(errors.array())
+        .groupBy('param')
+        .mapValues(group => _.map(group, 'msg'))
+        .value();
+      
+      res.status(HttpStatus.BAD_REQUEST).json({ errors: errors });
     };
   };
