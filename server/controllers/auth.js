@@ -49,4 +49,11 @@ exports.SignInController = async (req, res, next) => {
   Authenticate(req, res, next, HttpStatus.OK);
 };
 
+// Get current user controller
 exports.GetCurrentUserController = async (req, res) => res.status(HttpStatus.OK).send(req.user);
+
+// Logout controller
+exports.Logout = async (req, res) => {
+  req.logout();
+  return res.status(HttpStatus.OK).send();
+};

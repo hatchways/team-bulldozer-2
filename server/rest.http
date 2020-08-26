@@ -27,3 +27,7 @@ Content-Type: application/json
 
 ### Get /me  get current connected user
 GET http://localhost:3001/auth/me
+
+
+### Logout
+GET http://localhost:3001/auth/logout
