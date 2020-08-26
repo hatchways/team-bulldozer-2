@@ -22,3 +22,9 @@ yarn-error.log*
 
 #TODO add .env to your gitignore
 
+
+*.exe
+
+.vscode/launch.json
+
+.vscode/settings.json
