@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Typography } from "@material-ui/core";
 import { makeStyles } from "@material-ui/core/styles";
 import Button from "@material-ui/core/Button";
+import { useHistory } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
   root: {
@@ -28,14 +29,26 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const AccountHeader = ({ title, buttonTitle }) => {
+const AccountHeader = ({ title, buttonTitle, buttonUrl }) => {
   const classes = useStyles();
+  let history = useHistory();
+
+  const handleButtonClick = () => {
+    history.push(buttonUrl);
+  };
+
   return (
     <div className={classes.root}>
       <Typography variant="h5" className={classes.text}>
         {title}
       </Typography>
-      <Button variant="outlined" className={classes.button}>
+      <Button
+        variant="outlined"
+        className={classes.button}
+        onClick={() => {
+          handleButtonClick();
+        }}
+      >
         {buttonTitle}
       </Button>
     </div>

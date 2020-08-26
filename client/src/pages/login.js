@@ -1,9 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
 import { useForm } from "react-hook-form";
+import { useHistory } from "react-router-dom";
+import CircularProgress from "@material-ui/core/CircularProgress";
+import Alert from "@material-ui/lab/Alert";
+import AuthApi from "../utils/api/auth";
+import { UserContext } from "../utils/context/userContext";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -28,18 +33,32 @@ const useStyles = makeStyles((theme) => ({
   title: {
     marginBottom: theme.spacing(5),
   },
+  wrapper: {
+    margin: theme.spacing(1),
+    position: "relative",
+  },
+  buttonProgress: {
+    color: "#516BF6",
+    position: "absolute",
+    top: "50%",
+    left: "20%",
+    marginTop: -12,
+    marginLeft: -12,
+  },
 }));
 
 const Login = () => {
   const classes = useStyles();
-
+  const { setUserData } = useContext(UserContext);
+  let history = useHistory();
   const { register, handleSubmit, errors } = useForm();
-
   const [fields, setFields] = useState({
-    username: "",
+    email: "",
     password: "",
   });
-
+  const [showAlert, setShowAlert] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [messageAlert, setmessageAlert] = useState("");
   const handleChange = (field, event) => {
     setFields({
       ...fields,
@@ -48,8 +67,30 @@ const Login = () => {
   };
 
   const onSubmit = (event) => {
-    event.preventDefault();
-    console.log(fields);
+    setLoading(true);
+    let status;
+    AuthApi.login(fields)
+      .then((res) => {
+        status = res.status;
+        if (status < 500) return res.json();
+        else throw Error("Server error");
+      })
+      .then((res) => {
+        if (status === 200) {
+          setUserData({
+            isSignedIn: true,
+            user: res,
+          });
+          history.push("/dashboard");
+        } else {
+          setShowAlert(true);
+          setmessageAlert(res.response);
+          setLoading(false);
+        }
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
   };
 
   return (
@@ -57,27 +98,34 @@ const Login = () => {
       <Typography component="h1" variant="h1" className={classes.title}>
         Sign In
       </Typography>
+      {showAlert ? <Alert severity="error">{messageAlert}</Alert> : null}
       <form
         className={classes.form}
         onSubmit={handleSubmit(onSubmit)}
         noValidate
       >
         <Typography component="h6" variant="h6">
-          Username
+          Email
         </Typography>
         <TextField
-          error={errors.username ? true : false}
+          error={errors.email ? true : false}
           variant="outlined"
           className={classes.input}
           required
           fullWidth
-          id="username"
-          placeholder="Username"
-          name="username"
-          inputRef={register({ required: "Username is required" })}
-          onChange={(event) => handleChange("username", event)}
-          helperText={errors.username ? errors.username.message : null}
-          autoFocus
+          id="email"
+          placeholder="john@mail.com"
+          name="email"
+          autoComplete="email"
+          inputRef={register({
+            required: "Email is required",
+            pattern: {
+              value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,4}$/i,
+              message: "Entered value does not match email format",
+            },
+          })}
+          helperText={errors.email ? errors.email.message : null}
+          onChange={(event) => handleChange("email", event)}
         />
         <Typography component="h6" variant="h6">
           Password
@@ -102,14 +150,20 @@ const Login = () => {
           onChange={(event) => handleChange("password", event)}
           helperText={errors.password ? errors.password.message : null}
         />
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          className={classes.submit}
-        >
-          Continue
-        </Button>
+        <div className={classes.wrapper}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            className={classes.submit}
+            disabled={loading}
+          >
+            Continue
+          </Button>
+          {loading && (
+            <CircularProgress size={24} className={classes.buttonProgress} />
+          )}
+        </div>
       </form>
     </div>
   );
