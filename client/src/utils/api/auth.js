@@ -2,7 +2,7 @@ const API_URL = process.env.REACT_APP_API_URL;
 
 export default class AuthApi {
   static login(fields) {
-    return fetch(`${API_URL}/auth/login`, {
+    return fetch("/auth/login", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -13,7 +13,7 @@ export default class AuthApi {
   }
 
   static register(fields) {
-    return fetch(`${API_URL}/auth/register`, {
+    return fetch("/auth/register", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -24,7 +24,7 @@ export default class AuthApi {
   }
 
   static me(fields) {
-    return fetch(`${API_URL}/auth/me`, {
+    return fetch("/auth/me", {
       method: "Get",
       credentials: "include",
     });
