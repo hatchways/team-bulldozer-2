@@ -31,3 +31,6 @@ GET http://localhost:3001/auth/me
 
 ### Logout
 GET http://localhost:3001/auth/logout
+
+### Get interview levels
+GET http://localhost:3001/dificulitys-levels

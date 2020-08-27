@@ -3,13 +3,15 @@ const mongoose = require('mongoose');
 const { Schema } = mongoose;
 const bcrypt = require('bcrypt');
 
-const profileSchema = new Schema({
+const ProfileSchema = new Schema({
   language: String,
   experienceYears: Number,
   level: Number,
 });
 
-const userSchema = Schema({
+const { QuestionSchema } = require('./question');
+
+const UserSchema = Schema({
   email: {
     type: String,
     required: true,
@@ -29,11 +31,12 @@ const userSchema = Schema({
     required: true,
   },
   salt: String,
-
-  profile: { type: profileSchema },
+  profile: { type: ProfileSchema },
+  questions: [QuestionSchema],
 });
+
 // this code will be executed before saving a user
-userSchema.pre('save', async function (next) {
+UserSchema.pre('save', async function (next) {
   // only hash the password if it has been modified (or is new)
   if (!this.isModified('password')) return next();
   try {
@@ -46,10 +49,13 @@ userSchema.pre('save', async function (next) {
   }
 });
 
-userSchema.methods.validPassword = function (candidatePassword, cb) {
+UserSchema.methods.validPassword = function (candidatePassword, cb) {
   bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
     if (err) return cb(err);
     cb(null, isMatch);
   });
 };
-module.exports = mongoose.model('User', userSchema);
+
+const UserModel = mongoose.model('User', UserSchema);
+
+module.exports = { UserSchema, UserModel };
