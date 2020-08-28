@@ -1,9 +1,14 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import Button from "@material-ui/core/Button";
 import TextField from "@material-ui/core/TextField";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
+import CircularProgress from "@material-ui/core/CircularProgress";
 import { useForm } from "react-hook-form";
+import { useHistory } from "react-router-dom";
+import Alert from "@material-ui/lab/Alert";
+import AuthApi from "../utils/api/auth";
+import { UserContext } from "../utils/context/userContext";
 
 const useStyles = makeStyles((theme) => ({
   paper: {
@@ -21,6 +26,18 @@ const useStyles = makeStyles((theme) => ({
     width: "100%", // Fix IE 11 issue.
     marginTop: theme.spacing(1),
   },
+  wrapper: {
+    margin: theme.spacing(1),
+    position: "relative",
+  },
+  buttonProgress: {
+    color: "#516BF6",
+    position: "absolute",
+    top: "50%",
+    left: "20%",
+    marginTop: -12,
+    marginLeft: -12,
+  },
   submit: {
     padding: "15px 50px",
     borderRadius: "5em",
@@ -32,16 +49,19 @@ const useStyles = makeStyles((theme) => ({
 
 const Register = () => {
   const classes = useStyles();
-
+  let history = useHistory();
+  const { setUserData } = useContext(UserContext);
   const { register, handleSubmit, errors } = useForm();
-
   const [fields, setFields] = useState({
-    username: "",
+    firstName: "",
+    lastName: "",
     email: "",
     password: "",
     confirmPassword: "",
   });
-
+  const [showAlert, setShowAlert] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [messageAlert, setmessageAlert] = useState("");
   const handleChange = (field, event) => {
     setFields({
       ...fields,
@@ -50,7 +70,30 @@ const Register = () => {
   };
 
   const onSubmit = (data) => {
-    console.log(fields);
+    setLoading(true);
+    let status;
+    AuthApi.register(fields)
+      .then((res) => {
+        status = res.status;
+        if (status < 500) return res.json();
+        else throw Error("Server error");
+      })
+      .then((res) => {
+        if (status === 201) {
+          setUserData({
+            isSignedIn: true,
+            user: res,
+          });
+          history.push("/dashboard");
+        } else {
+          setLoading(false);
+          setShowAlert(true);
+          setmessageAlert(res.response.errors);
+        }
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
   };
 
   return (
@@ -58,26 +101,44 @@ const Register = () => {
       <Typography component="h1" variant="h1" className={classes.title}>
         Get started!
       </Typography>
+      {showAlert ? <Alert severity="error">{messageAlert}</Alert> : null}
       <form
         className={classes.form}
         onSubmit={handleSubmit(onSubmit)}
         noValidate
       >
         <Typography component="h6" variant="h6">
-          Username
+          First Name
         </Typography>
         <TextField
-          error={errors.username ? true : false}
+          error={errors.firstName ? true : false}
           variant="outlined"
           className={classes.input}
           required
           fullWidth
-          id="username"
-          placeholder="Username"
-          name="username"
-          onChange={(event) => handleChange("username", event)}
-          inputRef={register({ required: "Username is required" })}
-          helperText={errors.username ? errors.username.message : null}
+          id="firstName"
+          placeholder="First Name"
+          name="firstName"
+          onChange={(event) => handleChange("firstName", event)}
+          inputRef={register({ required: "First Name is required" })}
+          helperText={errors.firstName ? errors.firstName.message : null}
+          autoFocus
+        />
+        <Typography component="h6" variant="h6">
+          Last Name
+        </Typography>
+        <TextField
+          error={errors.lastName ? true : false}
+          variant="outlined"
+          className={classes.input}
+          required
+          fullWidth
+          id="lastName"
+          placeholder="Last Name"
+          name="lastName"
+          onChange={(event) => handleChange("lastName", event)}
+          inputRef={register({ required: "Last Name is required" })}
+          helperText={errors.lastName ? errors.lastName.message : null}
           autoFocus
         />
         <Typography component="h6" variant="h6">
@@ -151,14 +212,20 @@ const Register = () => {
             errors.confirmPassword ? errors.confirmPassword.message : null
           }
         />
-        <Button
-          type="submit"
-          variant="contained"
-          color="primary"
-          className={classes.submit}
-        >
-          Continue
-        </Button>
+        <div className={classes.wrapper}>
+          <Button
+            type="submit"
+            variant="contained"
+            color="primary"
+            disabled={loading}
+            className={classes.submit}
+          >
+            Continue
+          </Button>
+          {loading && (
+            <CircularProgress size={24} className={classes.buttonProgress} />
+          )}
+        </div>
       </form>
     </div>
   );

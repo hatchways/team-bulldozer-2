@@ -1,9 +1,9 @@
-import React from "react";
+import React, { useContext } from "react";
 import PropTypes from "prop-types";
 import { Route, Redirect } from "react-router-dom";
-
 import AppLayout from "../layouts/AppLayout";
 import AccountLayout from "../layouts/AccountLayout";
+import { UserContext } from "../utils/context/userContext";
 
 const RouteContainer = ({
   component: Component,
@@ -11,8 +11,8 @@ const RouteContainer = ({
   layoutProps,
   ...routeProps
 }) => {
-  const isSignedIn = false;
-
+  const { userData, setUserData } = useContext(UserContext);
+  const isSignedIn = userData.isSignedIn;
   // Check if user is authenticated and if route is private
   if (isPrivateRoute && !isSignedIn) {
     return <Route {...routeProps} render={() => <Redirect to="/" />} />;

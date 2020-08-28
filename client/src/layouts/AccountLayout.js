@@ -28,7 +28,12 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const AccountLayout = ({ children, titleHeader, buttonTitleHeader }) => {
+const AccountLayout = ({
+  children,
+  titleHeader,
+  buttonTitleHeader,
+  buttonUrlHeader,
+}) => {
   const classes = useStyles();
 
   return (
@@ -41,7 +46,11 @@ const AccountLayout = ({ children, titleHeader, buttonTitleHeader }) => {
           alignItems="center"
           className={classes.gridHeader}
         >
-          <AccountHeader title={titleHeader} buttonTitle={buttonTitleHeader} />
+          <AccountHeader
+            title={titleHeader}
+            buttonTitle={buttonTitleHeader}
+            buttonUrl={buttonUrlHeader}
+          />
         </Grid>
         {children}
       </Grid>
