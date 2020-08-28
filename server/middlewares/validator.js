@@ -14,5 +14,5 @@ module.exports = (validations) => async (req, res, next) => {
     .mapValues((group) => _.map(group, 'msg'))
     .value();
 
-  res.status(HttpStatus.BAD_REQUEST).json({ errors });
+  return res.status(HttpStatus.BAD_REQUEST).json({ errors });
 };

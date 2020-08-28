@@ -1,7 +1,9 @@
-module.exports = (router) => {
-  router.get('/', (req, res) => {
-    res.status(200).send({ welcomeMessage: 'Step 1 (completed)' });
-  });
+const express = require('express');
 
-  return router;
-};
+const router = express.Router();
+
+router.get('/', (req, res) => {
+  res.status(200).send({ welcomeMessage: 'Step 1 (completed)' });
+});
+
+module.exports = router;

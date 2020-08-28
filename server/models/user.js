@@ -32,7 +32,6 @@ const UserSchema = Schema({
   },
   salt: String,
   profile: { type: ProfileSchema },
-  questions: [QuestionSchema],
 });
 
 // this code will be executed before saving a user
@@ -47,6 +46,7 @@ UserSchema.pre('save', async function (next) {
   } catch (error) {
     next(error);
   }
+  return next();
 });
 
 UserSchema.methods.validPassword = function (candidatePassword, cb) {
@@ -58,4 +58,11 @@ UserSchema.methods.validPassword = function (candidatePassword, cb) {
 
 const UserModel = mongoose.model('User', UserSchema);
 
-module.exports = { UserSchema, UserModel };
+const BasicUserSchema = new Schema({
+  email: String,
+  firstName: String,
+  lastName: String,
+  questions: [QuestionSchema],
+});
+
+module.exports = { UserSchema, UserModel, BasicUserSchema };

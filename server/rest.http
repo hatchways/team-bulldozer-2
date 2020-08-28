@@ -33,4 +33,16 @@ GET http://localhost:3001/auth/me
 GET http://localhost:3001/auth/logout
 
 ### Get interview levels
-GET http://localhost:3001/dificulitys-levels
+GET http://localhost:3001/interviews/difficulty-levels
+
+### Create new interview
+POST  http://localhost:3001/interviews
+Content-Type: application/json
+
+{
+    "level" : "5f48e2a54552ce3c08d538ca",
+    "title" : "Time Convertion"
+}
+
+### Get list of interviews for the connected user
+GET  http://localhost:3001/interviews

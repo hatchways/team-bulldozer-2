@@ -2,19 +2,20 @@ const mongoose = require('mongoose');
 
 const { Schema } = mongoose;
 
-const { UserSchema } = require('./user');
+const { BasicUserSchema } = require('./user');
 
 const DifficultyLevelSchema = new Schema({
   name: String,
 });
 
 const InterviewSchema = new Schema({
-  participants: [UserSchema],
+  participants: [BasicUserSchema],
   level: DifficultyLevelSchema,
-  startTime: Date,
-  endTime: Date,
-  link: String,
-  theme: String,
+  startTime: { type: Date, default: null },
+  endTime: { type: Date, default: null },
+  path: String,
+  title: String,
+  isCancelled: { type: Boolean, default: false },
 });
 
 const Interview = mongoose.model('Interview', InterviewSchema);

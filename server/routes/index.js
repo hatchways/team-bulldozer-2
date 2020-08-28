@@ -1,14 +1,11 @@
-const express = require('express');
-
-const router = express.Router();
-const homeRouter = require('./home')(router);
-const authRouter = require('./auth')(router);
-const interviewRouter = require('./interview')(router);
+const homeRouter = require('./home');
+const authRouter = require('./auth');
+const interviewRouter = require('./interview');
 
 module.exports = (app) => {
   app.use('/auth', authRouter);
+  app.use('/interviews', interviewRouter);
   app.use('/', homeRouter);
-  app.use('/', interviewRouter);
 
   return app;
 };

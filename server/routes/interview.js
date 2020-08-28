@@ -1,10 +1,16 @@
+const express = require('express');
+
+const router = express.Router();
 const IsLoggedIn = require('../middlewares/isLoggedIn');
+const Validator = require('../middlewares/validator');
+const { Interview } = require('../validations/interviewSchema');
 const {
-  GetInterviewDificulityLevels,
+  GetDificulityLevelsController,
+  CreateController, GetAllController,
 } = require('../controllers/interview');
 
-module.exports = (router) => {
-  router.get('/dificulitys-levels', IsLoggedIn(), GetInterviewDificulityLevels);
+router.get('/difficulty-levels', IsLoggedIn(), GetDificulityLevelsController);
+router.post('/', IsLoggedIn(), Validator(Interview), CreateController);
+router.get('/', IsLoggedIn(), GetAllController);
 
-  return router;
-};
+module.exports = router;
