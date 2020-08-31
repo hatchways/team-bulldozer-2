@@ -4,12 +4,12 @@ const cryptoRandomString = require('crypto-random-string');
 const { DifficultyLevel, Interview } = require('../models/interview');
 
 // Return question levels list
-const GetDificulityLevelsController = async (req, res) => {
+const GetDifficultyLevelsController = async (req, res) => {
   const levels = await DifficultyLevel.find({}, { __v: false }).exec();
   res.status(HttpStatus.OK).send(levels);
 };
 
-// Create a new interviews on fonction of the title and difficulty level id
+// Create a new interviews on fonction of the title and the difficulty level id
 const CreateController = async (req, res) => {
   const { title } = req.body;
 
@@ -26,7 +26,7 @@ const CreateController = async (req, res) => {
   return res.status(HttpStatus.CREATED).send(interview);
 };
 
-// get the list of interviews for the the connected user
+// get the list of interviews for the connected user
 
 const GetAllController = async (req, res) => {
   const currentuser = req.user;
@@ -42,4 +42,4 @@ const GetAllController = async (req, res) => {
   });
 };
 
-module.exports = { GetDificulityLevelsController, CreateController, GetAllController };
+module.exports = { GetDifficultyLevelsController, CreateController, GetAllController };
