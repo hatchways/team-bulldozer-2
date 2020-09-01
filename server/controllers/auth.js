@@ -1,6 +1,6 @@
 const HttpStatus = require('http-status-codes');
 const passport = require('passport');
-const User = require('../models/user');
+const User = require('../models/user').UserModel;
 
 function Authenticate(req, res, next, statusCode) {
   passport.authenticate('local', (err, user) => {
