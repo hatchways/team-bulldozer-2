@@ -5,13 +5,8 @@
   "scripts": {
     "dev": "nodemon ./bin/www",
     "debug": "nodemon  --inspect ./bin/www",
-    "test": "cross-env DB_CONNECTION=mongodb://localhost:27017/hatchways-tests mocha --exit --timeout 30000"
+    "test": "cross-env DB_CONNECTION=mongodb://localhost:27017/hatchways-tests mocha --exit --timeout 30000",
     "lint": "eslint *.js"
-  },
-  "config": {
-    "mongodbMemoryServer": {
-      "version": "latest"
-    }
   },
   "dependencies": {
     "bcrypt": "^5.0.0",

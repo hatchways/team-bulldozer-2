@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 const HttpStatus = require('http-status-codes');
 const passport = require('passport');
 const User = require('../models/user').UserModel;
@@ -6,7 +7,7 @@ function Authenticate(req, res, next, statusCode) {
   passport.authenticate('local', (err, user) => {
     if (err) { next(err); }
     if (!user) {
-      return res.status(HttpStatus.FORBIDDEN).send(user);
+      return res.status(HttpStatus.UNAUTHORIZED).send(user);
     }
     req.logIn(user, async (loginErr) => {
       if (loginErr) { return next(loginErr); }
@@ -49,26 +50,6 @@ exports.SignInController = async (req, res, next) => {
   Authenticate(req, res, next, HttpStatus.OK);
 };
 
-function Authenticate(req, res, next, statusCode) {
-    passport.authenticate('local', (err, user) => {
-      if (err) { next(err); }
-      if (!user) {
-        return res.status(HttpStatus.UNAUTHORIZED).send(user);
-      }
-      req.logIn(user, async (loginErr) => {
-        if (loginErr) { return next(loginErr); }
-        const dbUser = await User.findOne({ _id: user._id }, {
-          password: false,
-          salt: false,
-          __v: false,
-        }).lean();
-        return res.status(statusCode).send(dbUser);
-      });
-  
-      return true;
-    })(req, res, next);
-  }
-  
 // Get current user controller
 exports.GetCurrentUserController = async (req, res) => res.status(HttpStatus.OK).send(req.user);
 
