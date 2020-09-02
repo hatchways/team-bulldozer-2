@@ -1,5 +1,3 @@
-const API_URL = process.env.REACT_APP_API_URL;
-
 export default class AuthApi {
   static login(fields) {
     return fetch("/auth/login", {

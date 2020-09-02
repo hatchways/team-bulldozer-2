@@ -28,13 +28,13 @@ const useStyles = makeStyles((theme) => ({
   },
   wrapper: {
     margin: theme.spacing(1),
-    position: "relative",
+    position: "absolute",
   },
   buttonProgress: {
     color: "#516BF6",
     position: "absolute",
     top: "50%",
-    left: "20%",
+    left: "50%",
     marginTop: -12,
     marginLeft: -12,
   },
@@ -69,7 +69,7 @@ const Register = () => {
     });
   };
 
-  const onSubmit = (data) => {
+  const onSubmit = () => {
     setLoading(true);
     let status;
     AuthApi.register(fields)

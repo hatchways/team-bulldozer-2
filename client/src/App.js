@@ -13,10 +13,10 @@ import { UserContext } from "./utils/context/userContext";
 
 function App() {
   const [userData, setUserData] = useState({
-    isSignedIn: undefined,
+    isSignedIn: true,
     user: undefined,
   });
-
+  const [isLoaded, setIsLoaded] = useState(false);
   useEffect(() => {
     const checkLoggedIn = async () => {
       let status;
@@ -38,6 +38,7 @@ function App() {
               user: undefined,
             });
           }
+          setIsLoaded(true);
         })
         .catch((err) => {
           console.log(err.message);
@@ -49,34 +50,36 @@ function App() {
   return (
     <MuiThemeProvider theme={theme}>
       <CssBaseline />
-      <BrowserRouter>
-        <UserContext.Provider value={{ userData, setUserData }}>
-          <RouteContainer
-            path="/"
-            component={Register}
-            layoutProps={{
-              titleHeader: "Already have an account?",
-              buttonTitleHeader: "Sign In",
-              buttonUrlHeader: "/login",
-            }}
-            exact
-          />
-          <RouteContainer
-            path="/login"
-            component={Login}
-            layoutProps={{
-              titleHeader: "Don't have an account?",
-              buttonTitleHeader: "Sign Up",
-              buttonUrlHeader: "/",
-            }}
-          />
-          <RouteContainer
-            path="/dashboard"
-            component={Dashboard}
-            isPrivateRoute
-          />
-        </UserContext.Provider>
-      </BrowserRouter>
+      {isLoaded && (
+        <BrowserRouter>
+          <UserContext.Provider value={{ userData, setUserData }}>
+            <RouteContainer
+              path="/"
+              component={Register}
+              layoutProps={{
+                titleHeader: "Already have an account?",
+                buttonTitleHeader: "Sign In",
+                buttonUrlHeader: "/login",
+              }}
+              exact
+            />
+            <RouteContainer
+              path="/login"
+              component={Login}
+              layoutProps={{
+                titleHeader: "Don't have an account?",
+                buttonTitleHeader: "Sign Up",
+                buttonUrlHeader: "/",
+              }}
+            />
+            <RouteContainer
+              path="/dashboard"
+              component={Dashboard}
+              isPrivateRoute
+            />
+          </UserContext.Provider>
+        </BrowserRouter>
+      )}
     </MuiThemeProvider>
   );
 }

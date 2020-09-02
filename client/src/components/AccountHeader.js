@@ -56,8 +56,8 @@ const AccountHeader = ({ title, buttonTitle, buttonUrl }) => {
 };
 
 AccountHeader.propTypes = {
-  title: PropTypes.string.isRequired,
-  buttonTitle: PropTypes.string.isRequired,
+  title: PropTypes.string,
+  buttonTitle: PropTypes.string,
 };
 
 export default AccountHeader;

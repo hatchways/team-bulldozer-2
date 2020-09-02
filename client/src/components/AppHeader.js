@@ -45,12 +45,12 @@ const useStyles = makeStyles((theme) => ({
 const AppHeader = () => {
   const classes = useStyles();
   const preventDefault = (event) => event.preventDefault();
-  const { userData, setUserData } = useContext(UserContext);
+  const { userData } = useContext(UserContext);
   return (
     <AppBar position="absolute" className={classes.appBar}>
       <Toolbar className={classes.toolbar}>
         <div className={classes.logoContainer}>
-          <img className={classes.logo} src={Logo} />
+          <img className={classes.logo} src={Logo} alt="logo" />
         </div>
         <Link
           href="#"
@@ -77,7 +77,14 @@ const AppHeader = () => {
           Faq
         </Link>
         <Avatar
-          alt="Remy Sharp"
+          alt={
+            userData.user
+              ? userData.user.firstName +
+                " " +
+                userData.user.lastName +
+                " image"
+              : null
+          }
           src={AvatarImg}
           className={classes.avatarImg}
         />
