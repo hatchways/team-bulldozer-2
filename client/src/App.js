@@ -13,7 +13,7 @@ import { UserContext } from "./utils/context/userContext";
 
 function App() {
   const [userData, setUserData] = useState({
-    isSignedIn: undefined,
+    isSignedIn: true,
     user: undefined,
   });
 

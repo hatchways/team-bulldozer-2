@@ -1,7 +1,6 @@
 import React from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
-import { Container } from "@material-ui/core";
 import AppHeader from "../components/AppHeader";
 
 const useStyles = makeStyles({
@@ -14,7 +13,7 @@ const AppLayout = ({ children }) => {
   return (
     <div className={classes.root}>
       <AppHeader></AppHeader>
-      <Container>{children}</Container>
+      <div>{children}</div>
     </div>
   );
 };

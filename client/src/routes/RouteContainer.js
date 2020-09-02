@@ -11,7 +11,7 @@ const RouteContainer = ({
   layoutProps,
   ...routeProps
 }) => {
-  const { userData, setUserData } = useContext(UserContext);
+  const { userData } = useContext(UserContext);
   const isSignedIn = userData.isSignedIn;
   // Check if user is authenticated and if route is private
   if (isPrivateRoute && !isSignedIn) {
