@@ -1,7 +1,8 @@
+/* eslint-disable import/no-extraneous-dependencies */
 process.env.NODE_ENV = 'test';
 
 const chai = require('chai');
-const path = require('path');
+const pathResolver = require('path');
 const chaiHttp = require('chai-http');
 
 const { validCredentials } = require('../mocks/user');
@@ -9,46 +10,68 @@ const { validCredentials } = require('../mocks/user');
 chai.should();
 chai.use(chaiHttp);
 
-const dotEnvPath = path.resolve(`${__dirname}./../../.env`);
+const dotEnvPath = pathResolver.resolve(`${__dirname}./../../.env`);
 require('dotenv').config({ path: dotEnvPath });
 
 const app = require('../../app.js');
 
-exports.AssertPostRequest = (path, payload, expectedStatusCode, done) => {
+exports.AssertPostRequest = (path, payload, expectedStatusCode, done, assert = {}) => {
   chai.request(app)
     .post(path)
     .send(payload)
-    .end((err, res) => {
+    .end(async (err, res) => {
       if (err) throw err;
-      res.should.have.status(expectedStatusCode);
-      done();
+      try {
+        res.should.have.status(expectedStatusCode);
+        if (typeof assert === 'function') {
+          await assert();
+        }
+      } catch (e) {
+        return done(e);
+      }
+      return done();
     });
 };
 
-exports.AssertGetRequest = (path, expectedStatusCode, done) => {
+exports.AssertGetRequest = (path, expectedStatusCode, done, assert = {}) => {
   chai.request(app)
     .get(path)
-    .end((err, res) => {
+    .end(async (err, res) => {
       if (err) throw err;
-      res.should.have.status(expectedStatusCode);
-      done();
+      try {
+        res.should.have.status(expectedStatusCode);
+        if (typeof assert === 'function') {
+          await assert();
+        }
+      } catch (e) {
+        return done(e);
+      }
+      return done();
     });
 };
 
-exports.AssertSecuredGetRequest = (path, expectedStatusCode, done) => {
+exports.AssertSecuredGetRequest = (path, expectedStatusCode, done, assert = {}) => {
   const httpChaiAgent = chai.request.agent(app);
   httpChaiAgent
     .post('/auth/login')
     .send(validCredentials)
-    .end((err, res) => {
+    .end((err) => {
       if (err) throw err;
       httpChaiAgent
         .get(path)
-        .end((error, result) => {
+        .end(async (error, result) => {
           if (error) throw error;
-          result.should.have.status(expectedStatusCode);
+          try {
+            result.should.have.status(expectedStatusCode);
+            if (typeof assert === 'function') {
+              await assert();
+            }
+          } catch (e) {
+            httpChaiAgent.close();
+            return done(e);
+          }
           httpChaiAgent.close();
-          done();
+          return done();
         });
     });
 };

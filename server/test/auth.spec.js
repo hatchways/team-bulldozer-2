@@ -39,7 +39,14 @@ describe('Authentication controller', () => {
     });
 
     it('Should return 201 after creating a new user', (done) => {
-      AssertPostRequest('/auth/register', validUser, HttpStatus.CREATED, done);
+      AssertPostRequest('/auth/register',
+        validUser,
+        HttpStatus.CREATED,
+        done,
+        async () => {
+          const count = await User.countDocuments().exec();
+          count.should.equal(1);
+        });
     });
 
     it('Should return 409 after passing an exist user', (done) => {
