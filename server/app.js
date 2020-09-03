@@ -4,10 +4,15 @@ const { join } = require('path');
 const cookieParser = require('cookie-parser');
 const logger = require('morgan');
 const expressSession = require('express-session');
+const RedisStore = require('connect-redis')(expressSession);
+const redisUrl = require('redis-url');
 
 const { json, urlencoded } = express;
 
 const app = express();
+
+// Sets up a session store with Redis
+const sessionStore = new RedisStore({ client: redisUrl.connect(process.env.REDIS_URL) });
 
 app.use(logger('dev'));
 app.use(express.static(join(__dirname, 'public')));
@@ -17,6 +22,7 @@ app.use(cookieParser());
 
 app.use(
   expressSession({
+    store: sessionStore,
     secret: process.env.SESSION_SECRET_KEY,
     resave: true,
     saveUninitialized: false,
