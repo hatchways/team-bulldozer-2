@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import RouteContainer from "./routes/RouteContainer";
 import Login from "./pages/login";
 import Dashboard from "./pages/Dashboard";
+import WaitingRoom from "./components/WaitingRoom";
 import "./App.css";
 import AuthApi from "./utils/api/auth";
 import { UserContext } from "./utils/context/userContext";
@@ -75,6 +76,11 @@ function App() {
             <RouteContainer
               path="/dashboard"
               component={Dashboard}
+              isPrivateRoute
+            />
+            <RouteContainer
+              path="/room/:path"
+              component={() => <WaitingRoom open={true} />}
               isPrivateRoute
             />
           </UserContext.Provider>

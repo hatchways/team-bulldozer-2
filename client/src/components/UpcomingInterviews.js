@@ -123,6 +123,7 @@ const UpcomingInterviews = ({ upcomingInterviewsList }) => {
               <WaitingRoom
                 open={openWaitingRoom}
                 onClose={handleCloseWaitingRoom}
+                interviewParam={value}
               ></WaitingRoom>
             </div>
           </div>

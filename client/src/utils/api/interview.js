@@ -19,6 +19,16 @@ export default class InterviewApi {
     });
   }
 
+  static getDetailsByPath(path) {
+    return fetch(`/interviews/details/${path}`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+  }
+
   static createInterview(fields) {
     return fetch("/interviews", {
       method: "POST",
