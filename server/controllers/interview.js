@@ -1,7 +1,9 @@
+/* eslint-disable no-underscore-dangle */
 const HttpStatus = require('http-status-codes');
 const _ = require('lodash');
 const cryptoRandomString = require('crypto-random-string');
 const { DifficultyLevel, Interview } = require('../models/interview');
+const { PublishOn } = require('../utils/redis');
 
 // Return question levels list
 const GetDifficultyLevelsController = async (req, res) => {
@@ -42,10 +44,50 @@ const GetAllController = async (req, res) => {
   });
 };
 
-const GetByPath = async (req, res) => {
-  const path = req.params.path;
-  const interview = await Interview.findOne({ path: path }, { __v: false }).exec();
+const GetByPathController = async (req, res) => {
+  const { path } = req.params;
+  const interview = await Interview.findOne({ path }, { __v: false }).exec();
   return res.status(HttpStatus.OK).send(interview);
 };
 
-module.exports = { GetDifficultyLevelsController, CreateController, GetAllController, GetByPath };
+const JoinController = async (req, res) => {
+  const { id } = req.params;
+  const { user } = req;
+
+  const interview = await Interview.findOne({ _id: id }, { __v: false }).exec();
+  // check if interview exists in the database
+  if (interview === null) {
+    return res.status(HttpStatus.NOT_FOUND).send({
+      errors: 'interview not found',
+    });
+  }
+  // check if the user is not already joined the room
+  const isParticipantExists = _.filter(interview.participants,
+    (item) => item._id.toString() === user._id.toString()).length > 0;
+
+  if (isParticipantExists) {
+    return res.status(HttpStatus.BAD_REQUEST).send({
+      errors: 'the user is already joined',
+    });
+  }
+  // check if the number of participants does not exceed 2
+  if (interview.participants.length === 2) {
+    return res.status(HttpStatus.BAD_REQUEST).send({
+      errors: 'Number of participants reach his limit',
+    });
+  }
+  // Add the current use to list of interview's participants
+  interview.participants.push(user);
+  await interview.save();
+  // Notify the creator of the interview that another user just join the room
+  PublishOn(interview._id.toString(), `${user.firstName} ${user.lastName}`);
+  return res.status(HttpStatus.OK).send(interview);
+};
+
+module.exports = {
+  GetDifficultyLevelsController,
+  CreateController,
+  GetAllController,
+  GetByPathController,
+  JoinController,
+};

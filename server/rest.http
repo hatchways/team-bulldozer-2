@@ -46,3 +46,6 @@ Content-Type: application/json
 
 ### Get list of interviews for the connected user
 GET  http://localhost:3001/interviews
+
+### Join an interview
+GET  http://localhost:3001/interviews/5f513098a6211802bc6366c2/join

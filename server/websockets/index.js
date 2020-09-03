@@ -6,6 +6,7 @@ const RedisStore = require('connect-redis')(expressSession);
 const redisUrl = require('redis-url');
 const cookieParser = require('cookie-parser');
 const config = require('./config');
+const { SubcribeTo } = require('../utils/redis');
 
 const sessionStore = new RedisStore({ client: redisUrl.connect(process.env.REDIS_URL) });
 
@@ -13,7 +14,6 @@ module.exports = (server) => {
   function onAuthorizeSuccess(data, accept) {
     accept();
   }
-
   function onAuthorizeFail(data, message, error, accept) {
     if (error) throw new Error(message);
     return accept(new Error(message));
@@ -32,17 +32,16 @@ module.exports = (server) => {
 
   // on connection event
   io.on('connection', (socket) => {
+    // receive the interview id (room) from handshake query
     const { room } = socket.handshake.query;
-
+    // subscribe the socket to the room whose name is the ID of the interview
+    // use to handle the code change event in the editor
     socket.join(room);
-    socket.send(`Hello ${socket.request.user.firstName} !! you just connected to the room ${room}`);
-
-    // // or with emit() and custom event names
-    // socket.emit('greetings', 'Hey!', { ms: 'jane' }, Buffer.from([4, 3, 3, 1]));
-    // // handle the event sent with socket.emit()
-    // socket.on('salutations', (elem1, elem2, elem3) => {
-    //   console.log(elem1, elem2, elem3);
-    // });
+    // subscribe to the redis channel which has the same name as the socket room
+    SubcribeTo(room, (message) => {
+      // send a message to the room
+      socket.emit('join', message);
+    });
   });
 
   return server;
