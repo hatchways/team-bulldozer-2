@@ -6,11 +6,11 @@ const Validator = require('../middlewares/validator');
 const { Interview } = require('../validations/interviewSchema');
 const {
   GetDifficultyLevelsController,
-  CreateController, GetAllController,
+  CreateController, GetAllController, GetByPath
 } = require('../controllers/interview');
 
 router.get('/difficulty-levels', IsLoggedIn(), GetDifficultyLevelsController);
 router.post('/', IsLoggedIn(), Validator(Interview), CreateController);
 router.get('/', IsLoggedIn(), GetAllController);
-
+router.get("/details/:path", IsLoggedIn(), GetByPath);
 module.exports = router;

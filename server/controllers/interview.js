@@ -42,4 +42,10 @@ const GetAllController = async (req, res) => {
   });
 };
 
-module.exports = { GetDifficultyLevelsController, CreateController, GetAllController };
+const GetByPath = async (req, res) => {
+  const path = req.params.path;
+  const interview = await Interview.findOne({ path: path }, { __v: false }).exec();
+  return res.status(HttpStatus.OK).send(interview);
+};
+
+module.exports = { GetDifficultyLevelsController, CreateController, GetAllController, GetByPath };
