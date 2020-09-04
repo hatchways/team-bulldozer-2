@@ -8,14 +8,12 @@ const {
   GetDifficultyLevelsController,
   CreateController,
   GetAllController,
-  GetByPathController,
   JoinController,
 } = require('../controllers/interview');
 
 router.get('/difficulty-levels', IsLoggedIn(), GetDifficultyLevelsController);
 router.post('/', IsLoggedIn(), Validator(Interview), CreateController);
 router.get('/', IsLoggedIn(), GetAllController);
-router.get('/details/:path', IsLoggedIn(), GetByPathController);
-router.get('/:id/join', IsLoggedIn(), JoinController);
+router.get('/:path/join', IsLoggedIn(), JoinController);
 
 module.exports = router;
