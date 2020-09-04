@@ -39,8 +39,9 @@ module.exports = (server) => {
     socket.join(room);
     // subscribe to the redis channel which has the same name as the socket room
     SubcribeTo(room, (message) => {
+      const eventMessage = JSON.parse(message);
       // send a message to the room
-      socket.emit('join', message);
+      socket.emit(eventMessage.action, eventMessage.content);
     });
   });
 

@@ -9,11 +9,13 @@ const {
   CreateController,
   GetAllController,
   JoinController,
+  ExitController,
 } = require('../controllers/interview');
 
 router.get('/difficulty-levels', IsLoggedIn(), GetDifficultyLevelsController);
 router.post('/', IsLoggedIn(), Validator(Interview), CreateController);
 router.get('/', IsLoggedIn(), GetAllController);
 router.get('/:path/join', IsLoggedIn(), JoinController);
+router.get('/:path/exit', IsLoggedIn(), ExitController);
 
 module.exports = router;

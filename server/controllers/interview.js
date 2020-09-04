@@ -4,6 +4,7 @@ const _ = require('lodash');
 const cryptoRandomString = require('crypto-random-string');
 const { DifficultyLevel, Interview } = require('../models/interview');
 const { PublishOn } = require('../utils/redis');
+const { CreateRedisMessage } = require('../websockets/helpers');
 
 // Return question levels list
 const GetDifficultyLevelsController = async (req, res) => {
@@ -14,12 +15,19 @@ const GetDifficultyLevelsController = async (req, res) => {
 // Create a new interviews on fonction of the title and the difficulty level id
 const CreateController = async (req, res) => {
   const { title } = req.body;
-
   const level = await DifficultyLevel.findOne({ _id: req.body.level }, { __v: false }).exec();
   if (!level) {
     return res.status(HttpStatus.NOT_FOUND).send({ errors: { level: [`Level ${level} not found!`] } });
   }
-  const participants = [req.user];
+  const { user } = req;
+  const participant = {
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    _id: user._id,
+    isOwner: true,
+  };
+  const participants = [participant];
   const path = cryptoRandomString({ length: 10, type: 'url-safe' });
   const interview = await Interview.create({
     level, title, participants, path,
@@ -32,7 +40,9 @@ const CreateController = async (req, res) => {
 
 const GetAllController = async (req, res) => {
   const currentuser = req.user;
-  const interviews = await Interview.find({ participants: currentuser }, { __v: false }).exec();
+  const interviews = await Interview.find(
+    { participants: { $elemMatch: { _id: currentuser._id, isOwner: true } } }, { __v: false },
+  ).exec();
 
   const upcoming = _.filter(interviews, (item) => item.startTime === null
     && item.endTime === null && !item.isCancelled);
@@ -44,12 +54,11 @@ const GetAllController = async (req, res) => {
   });
 };
 
-
 const JoinController = async (req, res) => {
   const { path } = req.params;
   const { user } = req;
 
-  const interview = await Interview.findOne({ path: path }, { __v: false }).exec();
+  const interview = await Interview.findOne({ path }, { __v: false }).exec();
   // check if interview exists in the database
   if (interview === null) {
     return res.status(HttpStatus.NOT_FOUND).send({
@@ -57,10 +66,7 @@ const JoinController = async (req, res) => {
     });
   }
   // check if the user is not already joined the room
-  const isParticipantExists = _.filter(interview.participants,
-    (item) => item._id.toString() === user._id.toString()).length > 0;
-
-  if (isParticipantExists) {
+  if (interview.participants.id(user._id) !== null) {
     return res.status(HttpStatus.BAD_REQUEST).send({
       errors: 'the user is already joined',
     });
@@ -74,9 +80,32 @@ const JoinController = async (req, res) => {
   // Add the current use to list of interview's participants
   interview.participants.push(user);
   await interview.save();
+
   // Notify the creator of the interview that another user just join the room
-  PublishOn(interview._id.toString(), `${user.firstName} ${user.lastName}`);
+  PublishOn(interview._id.toString(), CreateRedisMessage(user, 'join'));
   return res.status(HttpStatus.OK).send(interview);
+};
+
+const ExitController = async (req, res) => {
+  const { path } = req.params;
+  const { user } = req;
+
+  const interview = await Interview.findOne({ path }, { __v: false }).exec();
+  // check if interview exists in the database
+  if (interview === null) {
+    return res.status(HttpStatus.NOT_FOUND).send({
+      errors: 'interview not found',
+    });
+  }
+  const participant = interview.participants.id(user._id);
+  // remove the user from the list of particiapants and save if he is not the owner of the interview
+  if (participant && !participant.isOwner) {
+    interview.participants.pull(user);
+    await interview.save();
+  }
+  // Notify the creator of the interview that another user just leave the room
+  PublishOn(interview._id.toString(), CreateRedisMessage(user, 'exit'));
+  return res.status(HttpStatus.NO_CONTENT).send();
 };
 
 module.exports = {
@@ -84,4 +113,5 @@ module.exports = {
   CreateController,
   GetAllController,
   JoinController,
+  ExitController,
 };

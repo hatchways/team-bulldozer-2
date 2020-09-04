@@ -62,6 +62,7 @@ const BasicUserSchema = new Schema({
   email: String,
   firstName: String,
   lastName: String,
+  isOwner: { type: Boolean, default: false },
   questions: [QuestionSchema],
 });
 

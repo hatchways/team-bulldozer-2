@@ -48,4 +48,7 @@ Content-Type: application/json
 GET  http://localhost:3001/interviews
 
 ### Join an interview
-GET  http://localhost:3001/interviews/5f513098a6211802bc6366c2/join
+GET  http://localhost:3001/interviews/-0tIX4wSLk/join
+
+### Exit interview room
+GET  http://localhost:3001/interviews/-0tIX4wSLk/exit
