@@ -20,17 +20,16 @@ const CreateController = async (req, res) => {
     return res.status(HttpStatus.NOT_FOUND).send({ errors: { level: [`Level ${level} not found!`] } });
   }
   const { user } = req;
-  const participant = {
+  const owner = {
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
     _id: user._id,
     isOwner: true,
   };
-  const participants = [participant];
   const path = cryptoRandomString({ length: 10, type: 'url-safe' });
   const interview = await Interview.create({
-    level, title, participants, path,
+    level, title, owner, path,
   });
 
   return res.status(HttpStatus.CREATED).send(interview);
@@ -40,9 +39,7 @@ const CreateController = async (req, res) => {
 
 const GetAllController = async (req, res) => {
   const currentuser = req.user;
-  const interviews = await Interview.find(
-    { participants: { $elemMatch: { _id: currentuser._id, isOwner: true } } }, { __v: false },
-  ).exec();
+  const interviews = await Interview.find({ 'owner._id': currentuser._id }, { __v: false }).exec();
 
   const upcoming = _.filter(interviews, (item) => item.startTime === null
     && item.endTime === null && !item.isCancelled);
@@ -82,7 +79,7 @@ const JoinController = async (req, res) => {
   await interview.save();
 
   // Notify the creator of the interview that another user just join the room
-  PublishOn(interview._id.toString(), CreateRedisMessage(user, 'join'));
+  PublishOn(interview._id.toString(), CreateRedisMessage(interview, user, 'join'));
   return res.status(HttpStatus.OK).send(interview);
 };
 
@@ -99,12 +96,12 @@ const ExitController = async (req, res) => {
   }
   const participant = interview.participants.id(user._id);
   // remove the user from the list of particiapants and save if he is not the owner of the interview
-  if (participant && !participant.isOwner) {
+  if (participant) {
     interview.participants.pull(user);
     await interview.save();
   }
   // Notify the creator of the interview that another user just leave the room
-  PublishOn(interview._id.toString(), CreateRedisMessage(user, 'exit'));
+  PublishOn(interview._id.toString(), CreateRedisMessage(interview, user, 'exit'));
   return res.status(HttpStatus.NO_CONTENT).send();
 };
 

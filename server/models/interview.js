@@ -13,6 +13,7 @@ const InterviewSchema = new Schema({
   level: DifficultyLevelSchema,
   startTime: { type: Date, default: null },
   endTime: { type: Date, default: null },
+  owner: BasicUserSchema,
   path: String,
   title: String,
   isCancelled: { type: Boolean, default: false },

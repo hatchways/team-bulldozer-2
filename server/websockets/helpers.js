@@ -1,10 +1,11 @@
 /* eslint-disable no-underscore-dangle */
-const CreateRedisMessage = (user, action) => {
+const CreateRedisMessage = (interview, user, action) => {
   const message = {
     action,
     content: {
       id: user._id,
       name: `${user.firstName} ${user.lastName}`,
+      interview: interview
     },
   };
 
