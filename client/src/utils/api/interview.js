@@ -19,16 +19,6 @@ export default class InterviewApi {
     });
   }
 
-  static getDetailsByPath(path) {
-    return fetch(`/interviews/details/${path}`, {
-      method: "GET",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      credentials: "include",
-    });
-  }
-
   static createInterview(fields) {
     return fetch("/interviews", {
       method: "POST",
@@ -37,6 +27,26 @@ export default class InterviewApi {
       },
       credentials: "include",
       body: JSON.stringify(fields),
+    });
+  }
+
+  static joinInterview(path) {
+    return fetch(`/interviews/${path}/join`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+  }
+
+  static exitInterview(path) {
+    return fetch(`/interviews/${path}/exit`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
     });
   }
 }

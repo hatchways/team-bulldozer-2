@@ -1,18 +1,21 @@
-import React, { useState, useContext, useEffect, useRef } from "react";
+import React, { useState, useContext, useRef } from "react";
 import PropTypes from "prop-types";
 import { makeStyles } from "@material-ui/core/styles";
-import { useParams, useHistory, useLocation } from "react-router-dom";
+import { useHistory, useParams } from "react-router-dom";
+import InterviewApi from "../utils/api/interview";
+import { UserContext } from "../utils/context/userContext";
+import copy from "copy-to-clipboard";
+import io from "socket.io-client";
 import Dialog from "@material-ui/core/Dialog";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
 import { Typography } from "@material-ui/core";
 import Button from "@material-ui/core/Button";
-import AvatarImg from "../assets/images/avatar.png";
-import Avatar from "@material-ui/core/Avatar";
+import Snackbar from "@material-ui/core/Snackbar";
+import MuiAlert from "@material-ui/lab/Alert";
 import TextField from "@material-ui/core/TextField";
-import InterviewApi from "../utils/api/interview";
-import { UserContext } from "../utils/context/userContext";
-import io from "socket.io-client";
+import Avatar from "@material-ui/core/Avatar";
+import AvatarImg from "../assets/images/avatar.png";
 
 const useStyles = makeStyles((theme) => ({
   title: {
@@ -78,27 +81,32 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const Alert = (props) => {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+};
+
 const WaitingRoom = (props) => {
   const classes = useStyles();
   const socket = useRef();
-  const { onClose, open, interviewParam } = props;
+  const [stateSnackbar, setStateSnackbar] = useState({ openSnackbar: false, SnackbarMessage: "" });
+  const { openSnackbar, SnackbarMessage } = stateSnackbar;
+  const { onClose, open, interviewParam, isSharedLink } = props;
   const { userData } = useContext(UserContext);
   const [interview, setInterview] = useState({});
+  const [link, setLink] = useState();
+  const [participant, setParticipant] = useState(false);
+  const [isLoaded, setIsLoaded] = useState(false);
   let params = useParams();
+  let history = useHistory();
+  const AppUrl = process.env.REACT_APP_APP_URL;
+  const SocketUrl = process.env.REACT_APP_SOCKET_URL;
+  let pathKey;
+  isSharedLink ? (pathKey = params.path) : (pathKey = interviewParam.path);
 
-  const handleClose = () => {
-    onClose();
-  };
-
-  const getInterviewDetails = async () => {
+  // when user join the interview room
+  const joinInterview = async (path) => {
     let status;
-    let pathName;
-
-    interviewParam
-      ? (pathName = interviewParam.path)
-      : (pathName = params.path);
-
-    InterviewApi.getDetailsByPath(pathName)
+    InterviewApi.joinInterview(path)
       .then((res) => {
         status = res.status;
         if (status < 500) return res.json();
@@ -107,7 +115,12 @@ const WaitingRoom = (props) => {
       .then((res) => {
         if (status === 200) {
           setInterview(res);
+          checkIfParticipantExist(res);
+          setLink(AppUrl + "/room/" + res.path)
+          connectSocket(res);
+          setIsLoaded(true);
         } else {
+          handleErrorJoin(res.errors)
         }
       })
       .catch((err) => {
@@ -115,114 +128,238 @@ const WaitingRoom = (props) => {
       });
   };
 
-  useEffect(() => {
-    socket.current = io.connect("/");
-    if (interviewParam) {
-      setInterview(interviewParam);
+  // redirect user to dashboard or close dialog with alert message
+  const handleErrorJoin = (message) => {
+    if (!isSharedLink) {
+      handleClose();
+      setStateSnackbar({ openSnackbar: true, SnackbarMessage: message });
     } else {
-      getInterviewDetails();
+      history.push({
+        pathname: "/dashboard",
+        state: { detail: { openSnackbar: true, SnackbarMessage: message } },
+      });
     }
-    socket.current.on("allUsers", (users) => {
-      console.log("users :>> ", users);
+  };
+
+  // remove user from interview participants 
+  const exitInterview = async (path) => {
+    let status;
+    InterviewApi.exitInterview(path)
+      .then((res) => {
+        status = res.status;
+        if (status < 500) return res.json();
+        else throw Error("Server error");
+      })
+      .then((res) => {
+        if (status === 200) {
+        }
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+  };
+
+  // redirect users to interview page after click on start
+  const startInterview = (interview) => {
+    history.push({
+      pathname: "/interview",
+      state: { detail: interview },
     });
-  }, []);
+  };
+
+  // emit socket event on click on start
+  const clickStartInterview = () => {
+    socket.current.emit("onStartInterview", interview);
+  };
+
+  // set participant if already exist in interview
+  const checkIfParticipantExist = (interview) => {
+    let participantObj = interview.participants.find(
+      (o) => o._id !== userData.user._id
+    );
+    if (participantObj) {
+      const participantName = participantObj.firstName + " " + participantObj.lastName;
+      setParticipant(participantName);
+    }
+  };
+
+  // connect to socket and handle socket events
+  const connectSocket = (interview) => {
+    socket.current = io.connect(SocketUrl, {
+      query: `room=${interview._id}`,
+    });
+    socket.current.on("join", (data) => {
+      setParticipant(data.name);
+      setInterview(data.interview);
+    });
+    socket.current.on("exit", (data) => {
+      setParticipant(false);
+    });
+    socket.current.on("startInterview", (data) => {
+      startInterview(data);
+    });
+  };
+
+  // on enter dialog
+  const onEnterDialog = () => {
+    joinInterview(pathKey);
+  };
+
+  // copie link to clipboard
+  const copieLink = () => {
+    copy(link);
+  };
+
+  // on exit dialog 
+  const onExitDialog = () => {
+    exitInterview(pathKey);
+  };
+
+  // handle close dialog
+  const handleClose = () => {
+    onClose();
+  };
+
+  // close snackbar alert
+  const handleCloseSnackbar = () => {
+    setStateSnackbar({ openSnackbar: false });
+  };
 
   return (
-    <Dialog onClose={handleClose} open={open} maxWidth="md">
-      {onClose && (
-        <IconButton
-          aria-label="close"
-          className={classes.closeButton}
-          onClick={handleClose}
-        >
-          <CloseIcon fontSize="small" />
-        </IconButton>
-      )}
-      <div className={classes.dialogContainer}>
-        <Typography component="h5" variant="h5" className={classes.title}>
-          Waiting Room
-        </Typography>
-        <div className={classes.linkContainer}>
-          <Typography component="h6" variant="h6" className={classes.label}>
-            Share link
-          </Typography>
-          <div className={classes.linkSection}>
-            <div className={classes.linkTextField}>
-              <TextField
-                variant="outlined"
-                className={classes.input}
-                fullWidth
-                id="link"
-                placeholder="https://interview.io/sWhtjLds"
-              />
+    <>
+      <Dialog
+        onClose={!isSharedLink ? handleClose : null}
+        open={open}
+        maxWidth="md"
+        onEnter={onEnterDialog}
+        onExit={onExitDialog}
+      >
+        {isLoaded && (
+          <div className={classes.dialogContainer}>
+            {!isSharedLink && (
+              <IconButton
+                aria-label="close"
+                className={classes.closeButton}
+                onClick={handleClose}
+              >
+                <CloseIcon fontSize="small" />
+              </IconButton>
+            )}
+            <Typography component="h5" variant="h5" className={classes.title}>
+              Waiting Room
+            </Typography>
+            <div className={classes.linkContainer}>
+              <Typography component="h6" variant="h6" className={classes.label}>
+                Share link
+              </Typography>
+              <div className={classes.linkSection}>
+                <div className={classes.linkTextField}>
+                  <TextField
+                    variant="outlined"
+                    className={classes.input}
+                    fullWidth
+                    id="link"
+                    value={link}
+                  />
+                </div>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  className={classes.button}
+                  onClick={copieLink}
+                >
+                  Copy
+                </Button>
+              </div>
             </div>
-            <Button
-              type="submit"
-              variant="contained"
-              color="primary"
-              className={classes.button}
-            >
-              Copy
-            </Button>
-          </div>
-        </div>
-        <Typography
-          component="h5"
-          variant="h5"
-          className={classes.participantTitle}
-        >
-          Participants
-        </Typography>
-        <div className={classes.participantContainer}>
-          <div className={classes.participantItem}>
-            <Avatar
-              alt="Remy Sharp"
-              src={AvatarImg}
-              className={classes.avatarImg}
-            />
             <Typography
               component="h5"
               variant="h5"
-              className={classes.participantName}
+              className={classes.participantTitle}
             >
               Participants
             </Typography>
-          </div>
-          <div className={classes.participantItem}>
-            <Avatar
-              alt="Remy Sharp"
-              src={AvatarImg}
-              className={classes.avatarImg}
-            />
-            <Typography
-              component="h5"
-              variant="h5"
-              className={classes.participantName}
-            >
-              Participants
-            </Typography>
-          </div>
-        </div>
+            <div className={classes.participantContainer}>
+              {participant && (
+                <div className={classes.participantItem}>
+                  <Avatar
+                    alt={participant + "image"}
+                    src={AvatarImg}
+                    className={classes.avatarImg}
+                  />
+                  <Typography
+                    component="h5"
+                    variant="h5"
+                    className={classes.participantName}
+                  >
+                    {participant}
+                  </Typography>
+                </div>
+              )}
 
-        <div className={classes.createButtonContainer}>
-          <Button
-            type="submit"
-            variant="contained"
-            color="primary"
-            className={classes.button}
-          >
-            Start
-          </Button>
-        </div>
-      </div>
-    </Dialog>
+              <div className={classes.participantItem}>
+                <Avatar
+                  alt={
+                    userData.user.firstName +
+                    " " +
+                    userData.user.lastName +
+                    "image"
+                  }
+                  src={AvatarImg}
+                  className={classes.avatarImg}
+                />
+                <Typography
+                  component="h5"
+                  variant="h5"
+                  className={classes.participantName}
+                >
+                  {userData.user.firstName + " " + userData.user.lastName}
+                </Typography>
+              </div>
+            </div>
+            {userData.user._id === interview.owner._id && (
+              <div className={classes.createButtonContainer}>
+                <Button
+                  type="submit"
+                  variant="contained"
+                  color="primary"
+                  className={classes.button}
+                  onClick={clickStartInterview}
+                >
+                  Start
+              </Button>
+              </div>
+            )}
+          </div>
+        )}
+      </Dialog>
+      <Snackbar
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="error">
+          {SnackbarMessage}
+        </Alert>
+      </Snackbar>
+    </>
   );
 };
 
 WaitingRoom.propTypes = {
   onClose: PropTypes.func,
   open: PropTypes.bool.isRequired,
+  isSharedLink: PropTypes.bool,
   interviewParam: PropTypes.object,
+};
+
+WaitingRoom.defaultProps = {
+  isSharedLink: true,
 };
 
 export default WaitingRoom;

@@ -27,4 +27,12 @@ export default class AuthApi {
       credentials: "include",
     });
   }
+
+  static logout() {
+    return fetch("/auth/logout", {
+      method: "Get",
+      credentials: "include",
+    });
+  }
+
 }
