@@ -11,7 +11,9 @@ const { SubcribeTo } = require('../utils/redis');
 const { Interview } = require('../models/interview');
 const InterviewService = require('../services/interviewService');
 
-const sessionStore = new RedisStore({ client: redisUrl.connect(process.env.REDIS_URL) });
+const sessionStore = new RedisStore({
+  client: redisUrl.connect(process.env.REDIS_URL),
+});
 
 module.exports = (server) => {
   function onAuthorizeSuccess(data, accept) {
@@ -25,16 +27,20 @@ module.exports = (server) => {
   // Init socket.io
   const io = socketio(server, config);
   // Init passport.socket.io
-  io.use(passportSocketIo.authorize({
-    secret: process.env.SESSION_SECRET_KEY,
-    store: sessionStore,
-    cookieParser,
-    success: onAuthorizeSuccess, // the accept-callback still allows us to decide whether to
-    fail: onAuthorizeFail, // *optional* callback on fail/error
-  }));
+  io.use(
+    passportSocketIo.authorize({
+      secret: process.env.SESSION_SECRET_KEY,
+      store: sessionStore,
+      cookieParser,
+      success: onAuthorizeSuccess, // the accept-callback still allows us to decide whether to
+      fail: onAuthorizeFail, // *optional* callback on fail/error
+    })
+  );
 
   // on connection event
-  io.on('connection', (socket) => {
+  io.on("connection", (socket) => {
+    //Emit socket id
+    socket.emit("yourSocketID", socket.id);
     // receive the interview id (room) from handshake query
     const { room } = socket.handshake.query;
     // subscribe the socket to the room whose name is the ID of the interview
@@ -55,6 +61,26 @@ module.exports = (server) => {
         await InterviewService.exit(user, interview);
       }
     });
+    //Handle start interview event
+    socket.on("onStartInterview", (data) => {
+      io.to(room).emit("startInterview", data);
+    });
+    //handle change interview code event
+    socket.on("onChangeCode", (data) => {
+      io.to(room).emit("changeCode", data);
+    });
+    //Handle call participant event
+    socket.on("callParticipant", (data) => {
+      io.to(room).emit('onCalling', { signal: data.signalData, from: data.from });
+    });
+    //Handle accept call event
+    socket.on("acceptCall", (data) => {
+      io.to(data.to).emit('callAccepted', data.signal);
+    });
+    //Disconnect
+    socket.on('disconnect', (data) => {
+      console.log('disconnect :>> ', socket.id);
+    })
   });
 
   return server;
