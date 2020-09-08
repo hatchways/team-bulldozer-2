@@ -73,7 +73,7 @@ const AppHeader = () => {
   let history = useHistory();
   const preventDefault = (event) => event.preventDefault();
   const [avatarMenu, setAvatarMenu] = useState(null);
-  const { userData } = useContext(UserContext);
+  const { userData, setUserData } = useContext(UserContext);
 
   const handleClickAvatarMenu = (event) => {
     setAvatarMenu(event.currentTarget);
@@ -88,11 +88,12 @@ const AppHeader = () => {
     AuthApi.logout()
       .then((res) => {
         status = res.status;
-        if (status < 500) return res.json();
+        if (status < 500) return res.text();
         else throw Error("Server error");
       })
       .then((res) => {
         if (status === 200) {
+          setUserData(false)
           history.push("/login");
         }
       })
