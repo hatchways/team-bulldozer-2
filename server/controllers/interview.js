@@ -1,10 +1,10 @@
 /* eslint-disable no-underscore-dangle */
 const HttpStatus = require('http-status-codes');
 const _ = require('lodash');
-const cryptoRandomString = require('crypto-random-string');
 const { DifficultyLevel, Interview } = require('../models/interview');
 const { PublishOn } = require('../utils/redis');
 const { CreateRedisMessage } = require('../websockets/helpers');
+const InterviewService = require('../services/interviewService');
 
 // Return question levels list
 const GetDifficultyLevelsController = async (req, res) => {
@@ -15,24 +15,15 @@ const GetDifficultyLevelsController = async (req, res) => {
 // Create a new interviews on fonction of the title and the difficulty level id
 const CreateController = async (req, res) => {
   const { title } = req.body;
+  const { user } = req;
+
   const level = await DifficultyLevel.findOne({ _id: req.body.level }, { __v: false }).exec();
   if (!level) {
     return res.status(HttpStatus.NOT_FOUND).send({ errors: { level: [`Level ${level} not found!`] } });
   }
-  const { user } = req;
-  const owner = {
-    email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    _id: user._id,
-    isOwner: true,
-  };
-  const path = cryptoRandomString({ length: 10, type: 'url-safe' });
-  const interview = await Interview.create({
-    level, title, owner, path,
-  });
+  const newInterview = InterviewService.create(user, level, title);
 
-  return res.status(HttpStatus.CREATED).send(interview);
+  return res.status(HttpStatus.CREATED).send(newInterview);
 };
 
 // get the list of interviews for the connected user
@@ -94,14 +85,7 @@ const ExitController = async (req, res) => {
       errors: 'interview not found',
     });
   }
-  const participant = interview.participants.id(user._id);
-  // remove the user from the list of particiapants and save if he is not the owner of the interview
-  if (participant) {
-    interview.participants.pull(user);
-    await interview.save();
-  }
-  // Notify the creator of the interview that another user just leave the room
-  PublishOn(interview._id.toString(), CreateRedisMessage(interview, user, 'exit'));
+  await InterviewService.exit(user, interview);
   return res.status(HttpStatus.NO_CONTENT).send();
 };
 

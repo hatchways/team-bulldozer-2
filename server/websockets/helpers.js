@@ -5,7 +5,7 @@ const CreateRedisMessage = (interview, user, action) => {
     content: {
       id: user._id,
       name: `${user.firstName} ${user.lastName}`,
-      interview: interview
+      interview,
     },
   };
 

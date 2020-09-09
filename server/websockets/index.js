@@ -1,3 +1,4 @@
+/* eslint-disable no-underscore-dangle */
 /* eslint-disable no-unused-vars */
 const socketio = require('socket.io');
 const passportSocketIo = require('passport.socketio');
@@ -7,6 +8,8 @@ const redisUrl = require('redis-url');
 const cookieParser = require('cookie-parser');
 const config = require('./config');
 const { SubcribeTo } = require('../utils/redis');
+const { Interview } = require('../models/interview');
+const InterviewService = require('../services/interviewService');
 
 const sessionStore = new RedisStore({ client: redisUrl.connect(process.env.REDIS_URL) });
 
@@ -42,6 +45,15 @@ module.exports = (server) => {
       const eventMessage = JSON.parse(message);
       // send a message to the room
       socket.emit(eventMessage.action, eventMessage.content);
+    });
+    // On disconnecting event
+    socket.on('disconnecting', async (reason) => {
+      const { user } = socket.request;
+      const interview = await Interview.findOne({ _id: room }, { __v: false }).exec();
+      // remove the user from the list of participants and notify the other user
+      if (interview) {
+        await InterviewService.exit(user, interview);
+      }
     });
   });
 
