@@ -34,13 +34,13 @@ module.exports = (server) => {
       cookieParser,
       success: onAuthorizeSuccess, // the accept-callback still allows us to decide whether to
       fail: onAuthorizeFail, // *optional* callback on fail/error
-    })
+    }),
   );
 
   // on connection event
-  io.on("connection", (socket) => {
-    //Emit socket id
-    socket.emit("yourSocketID", socket.id);
+  io.on('connection', (socket) => {
+    // Emit socket id
+    socket.emit('yourSocketID', socket.id);
     // receive the interview id (room) from handshake query
     const { room } = socket.handshake.query;
     // subscribe the socket to the room whose name is the ID of the interview
@@ -61,26 +61,26 @@ module.exports = (server) => {
         await InterviewService.exit(user, interview);
       }
     });
-    //Handle start interview event
-    socket.on("onStartInterview", (data) => {
-      io.to(room).emit("startInterview", data);
+    // Handle start interview event
+    socket.on('onStartInterview', (data) => {
+      io.to(room).emit('startInterview', data);
     });
-    //handle change interview code event
-    socket.on("onChangeCode", (data) => {
-      io.to(room).emit("changeCode", data);
+    // handle change interview code event
+    socket.on('onChangeCode', (data) => {
+      io.to(room).emit('changeCode', data);
     });
-    //Handle call participant event
-    socket.on("callParticipant", (data) => {
+    // Handle call participant event
+    socket.on('callParticipant', (data) => {
       io.to(room).emit('onCalling', { signal: data.signalData, from: data.from });
     });
-    //Handle accept call event
-    socket.on("acceptCall", (data) => {
+    // Handle accept call event
+    socket.on('acceptCall', (data) => {
       io.to(data.to).emit('callAccepted', data.signal);
     });
-    //Disconnect
+    // Disconnect
     socket.on('disconnect', (data) => {
       console.log('disconnect :>> ', socket.id);
-    })
+    });
   });
 
   return server;

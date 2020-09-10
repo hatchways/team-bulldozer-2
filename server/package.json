@@ -8,14 +8,21 @@
     "test": "cross-env DB_CONNECTION=mongodb://localhost:27017/hatchways-tests mocha --exit --timeout 30000",
     "lint": "eslint *.js"
   },
+  "nodemonConfig": {
+    "ignore": [
+      "dockerSandbox/*"
+    ]
+  },
   "dependencies": {
     "bcrypt": "^5.0.0",
     "connect-redis": "^5.0.0",
     "cookie-parser": "~1.4.4",
     "crypto-random-string": "^3.2.0",
     "debug": "~2.6.9",
+    "del": "^5.1.0",
     "dotenv": "^8.0.0",
     "express": "~4.16.1",
+    "express-brute": "^1.0.1",
     "express-session": "^1.17.1",
     "express-validator": "^6.6.1",
     "http-errors": "~1.6.3",
