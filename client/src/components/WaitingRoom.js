@@ -88,6 +88,8 @@ const Alert = (props) => {
 const WaitingRoom = (props) => {
   const classes = useStyles();
   const socket = useRef();
+  const history = useHistory();
+  const { path } = useParams();
   const [stateSnackbar, setStateSnackbar] = useState({ openSnackbar: false, SnackbarMessage: "" });
   const { openSnackbar, SnackbarMessage } = stateSnackbar;
   const { onClose, open, interviewParam, isSharedLink } = props;
@@ -96,12 +98,10 @@ const WaitingRoom = (props) => {
   const [link, setLink] = useState();
   const [participant, setParticipant] = useState(false);
   const [isLoaded, setIsLoaded] = useState(false);
-  let params = useParams();
-  let history = useHistory();
   const AppUrl = process.env.REACT_APP_APP_URL;
   const SocketUrl = process.env.REACT_APP_SOCKET_URL;
   let pathKey;
-  isSharedLink ? (pathKey = params.path) : (pathKey = interviewParam.path);
+  isSharedLink ? (pathKey = path) : (pathKey = interviewParam.path);
 
   // when user join the interview room
   const joinInterview = async (path) => {
