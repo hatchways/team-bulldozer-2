@@ -40,6 +40,16 @@ export default class InterviewApi {
     });
   }
 
+  static cancelInterview(path) {
+    return fetch(`/interviews/${path}/cancel`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+  }
+
   static exitInterview(path) {
     return fetch(`/interviews/${path}/exit`, {
       method: "GET",
