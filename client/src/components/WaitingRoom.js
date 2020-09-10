@@ -147,12 +147,10 @@ const WaitingRoom = (props) => {
     InterviewApi.exitInterview(path)
       .then((res) => {
         status = res.status;
-        if (status < 500) return res.json();
+        if (status < 500) return res.text();
         else throw Error("Server error");
       })
       .then((res) => {
-        if (status === 200) {
-        }
       })
       .catch((err) => {
         console.log(err.message);
@@ -248,31 +246,33 @@ const WaitingRoom = (props) => {
             <Typography component="h5" variant="h5" className={classes.title}>
               Waiting Room
             </Typography>
-            <div className={classes.linkContainer}>
-              <Typography component="h6" variant="h6" className={classes.label}>
-                Share link
+            {userData.user._id === interview.owner._id && (
+              <div className={classes.linkContainer}>
+                <Typography component="h6" variant="h6" className={classes.label}>
+                  Share link
               </Typography>
-              <div className={classes.linkSection}>
-                <div className={classes.linkTextField}>
-                  <TextField
-                    variant="outlined"
-                    className={classes.input}
-                    fullWidth
-                    id="link"
-                    value={link}
-                  />
-                </div>
-                <Button
-                  type="submit"
-                  variant="contained"
-                  color="primary"
-                  className={classes.button}
-                  onClick={copieLink}
-                >
-                  Copy
+                <div className={classes.linkSection}>
+                  <div className={classes.linkTextField}>
+                    <TextField
+                      variant="outlined"
+                      className={classes.input}
+                      fullWidth
+                      id="link"
+                      value={link}
+                    />
+                  </div>
+                  <Button
+                    type="submit"
+                    variant="contained"
+                    color="primary"
+                    className={classes.button}
+                    onClick={copieLink}
+                  >
+                    Copy
                 </Button>
+                </div>
               </div>
-            </div>
+            )}
             <Typography
               component="h5"
               variant="h5"
