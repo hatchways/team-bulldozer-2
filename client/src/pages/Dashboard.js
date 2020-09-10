@@ -83,6 +83,25 @@ const Dashboard = () => {
 
   };
 
+  const cancelInterview = (data) => {
+    let status;
+    InterviewApi.cancelInterview(data.path)
+      .then((res) => {
+        status = res.status;
+        if (status < 500) return res.json();
+        else throw Error("Server error");
+      })
+      .then((res) => {
+        if (status === 200) {
+          getInterviewList();
+        }
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+  };
+
+
   const getInterviewList = async () => {
     let status;
     InterviewApi.getListInterviews()
@@ -157,6 +176,7 @@ const Dashboard = () => {
             </Typography>
             <UpcomingInterviews
               upcomingInterviewsList={interviewList.upcoming}
+              onCancelWaitingRoom={cancelInterview}
             ></UpcomingInterviews>
           </div>
           <div className={classes.pastInterviewsContainer}>
