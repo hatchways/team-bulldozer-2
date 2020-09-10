@@ -59,12 +59,13 @@ const useStyles = makeStyles((theme) => ({
 
 const UpcomingInterviews = ({ upcomingInterviewsList }) => {
   const classes = useStyles();
-
   const [openWaitingRoom, setOpenWaitingRoom] = useState(false);
+  const [waitingRoomData, setWaitingRoomData] = useState({});
 
-  const handleClickOpenWaitingRoom = () => {
+  const handleClickOpenWaitingRoom = (data) => (event) => {
+    setWaitingRoomData(data);
     setOpenWaitingRoom(true);
-  };
+  }
 
   const handleCloseWaitingRoom = (value) => {
     setOpenWaitingRoom(false);
@@ -116,18 +117,21 @@ const UpcomingInterviews = ({ upcomingInterviewsList }) => {
               <Button
                 variant="outlined"
                 className={classes.button}
-                onClick={handleClickOpenWaitingRoom}
+                key={index}
+                onClick={handleClickOpenWaitingRoom(value)}
               >
                 Join
               </Button>
-              <WaitingRoom
-                open={openWaitingRoom}
-                onClose={handleCloseWaitingRoom}
-              ></WaitingRoom>
             </div>
           </div>
         );
       })}
+      <WaitingRoom
+        open={openWaitingRoom}
+        onClose={handleCloseWaitingRoom}
+        interviewParam={waitingRoomData}
+        isSharedLink={false}
+      ></WaitingRoom>
     </div>
   );
 };

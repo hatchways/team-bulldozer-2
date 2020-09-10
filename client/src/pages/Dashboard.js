@@ -1,9 +1,12 @@
 import React, { useState, useEffect } from "react";
 import Typography from "@material-ui/core/Typography";
 import { makeStyles } from "@material-ui/core/styles";
+import { useLocation, useHistory } from "react-router-dom";
 import Grid from "@material-ui/core/Grid";
 import Container from "@material-ui/core/Container";
 import Button from "@material-ui/core/Button";
+import Snackbar from "@material-ui/core/Snackbar";
+import MuiAlert from "@material-ui/lab/Alert";
 import UpcomingInterviews from "../components/UpcomingInterviews";
 import PastInterviews from "../components/PastInterviews";
 import CreateInterview from "../components/CreateInterview";
@@ -44,13 +47,24 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
+const Alert = (props) => {
+  return <MuiAlert elevation={6} variant="filled" {...props} />;
+};
+
 const Dashboard = () => {
+  let location = useLocation();
   const classes = useStyles();
   const [openCreateInterview, setOpenCreateInterview] = useState(false);
   const [interviewList, setInterviewList] = useState({
     upcoming: [],
     passed: [],
   });
+  const [stateSnackbar, setStateSnackbar] = useState({
+    openSnackbar: false,
+    SnackbarMessage: "",
+  });
+  const { openSnackbar, SnackbarMessage } = stateSnackbar;
+
 
   const handleClickOpenCreateInterview = () => {
     setOpenCreateInterview(true);
@@ -58,6 +72,15 @@ const Dashboard = () => {
 
   const handleCloseCreateInterview = () => {
     setOpenCreateInterview(false);
+  };
+
+  const handleCloseSnackbar = () => {
+    setStateSnackbar({ openSnackbar: false });
+  };
+
+  const handleOpenSnackbar = (data) => {
+    setStateSnackbar({ openSnackbar: data.openSnackbar, SnackbarMessage: data.SnackbarMessage });
+
   };
 
   const getInterviewList = async () => {
@@ -91,7 +114,6 @@ const Dashboard = () => {
       .then((res) => {
         if (status === 201) {
           getInterviewList();
-        } else {
         }
       })
       .catch((err) => {
@@ -101,6 +123,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     getInterviewList();
+    const dashboardParam = location.state;
+    if (dashboardParam) {
+      handleOpenSnackbar(dashboardParam.detail)
+    }
   }, []);
 
   return (
@@ -147,6 +173,19 @@ const Dashboard = () => {
           </div>
         </Grid>
       </Container>
+      <Snackbar
+        anchorOrigin={{
+          vertical: "top",
+          horizontal: "center",
+        }}
+        open={openSnackbar}
+        autoHideDuration={6000}
+        onClose={handleCloseSnackbar}
+      >
+        <Alert onClose={handleCloseSnackbar} severity="error">
+          {SnackbarMessage}
+        </Alert>
+      </Snackbar>
     </main>
   );
 };

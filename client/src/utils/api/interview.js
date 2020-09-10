@@ -29,4 +29,24 @@ export default class InterviewApi {
       body: JSON.stringify(fields),
     });
   }
+
+  static joinInterview(path) {
+    return fetch(`/interviews/${path}/join`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+  }
+
+  static exitInterview(path) {
+    return fetch(`/interviews/${path}/exit`, {
+      method: "GET",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+    });
+  }
 }

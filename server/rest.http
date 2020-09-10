@@ -46,3 +46,9 @@ Content-Type: application/json
 
 ### Get list of interviews for the connected user
 GET  http://localhost:3001/interviews
+
+### Join an interview
+GET  http://localhost:3001/interviews/-0tIX4wSLk/join
+
+### Exit interview room
+GET  http://localhost:3001/interviews/-0tIX4wSLk/exit
