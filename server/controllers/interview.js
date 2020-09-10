@@ -65,12 +65,38 @@ const JoinController = async (req, res) => {
       errors: 'Number of participants reach his limit',
     });
   }
+  // check only the owner of interview can join the room if the room already have an participant
+  if (interview.participants.length === 1 && interview.participants[0].owner._id !== user._id) {
+    return res.status(HttpStatus.BAD_REQUEST).send({
+      errors: 'Interview already have a participant only the creator of the interview can join the room',
+    });
+  }
   // Add the current use to list of interview's participants
   interview.participants.push(user);
   await interview.save();
 
   // Notify the creator of the interview that another user just join the room
   PublishOn(interview._id.toString(), CreateRedisMessage(interview, user, 'join'));
+  return res.status(HttpStatus.OK).send(interview);
+};
+
+const CancelController = async (req, res) => {
+  const { path } = req.params;
+  const interview = await Interview.findOne({ path }, { __v: false }).exec();
+  // check if interview exists in the database
+  if (interview === null) {
+    return res.status(HttpStatus.NOT_FOUND).send({
+      errors: 'interview not found',
+    });
+  }
+  // check if the number of participants does not exceed 1
+  if (interview.participants.length === 1) {
+    return res.status(HttpStatus.BAD_REQUEST).send({
+      errors: 'You can\'t cancel the interview there is a participant in the waitig room',
+    });
+  }
+  // Add the current use to list of interview's participants
+  await interview.remove();
   return res.status(HttpStatus.OK).send(interview);
 };
 
@@ -94,5 +120,6 @@ module.exports = {
   CreateController,
   GetAllController,
   JoinController,
+  CancelController,
   ExitController,
 };
