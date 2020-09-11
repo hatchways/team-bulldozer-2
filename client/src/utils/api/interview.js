@@ -59,4 +59,15 @@ export default class InterviewApi {
       credentials: "include",
     });
   }
+
+  static conpileCode(fields) {
+    return fetch(`/compile`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      credentials: "include",
+      body: JSON.stringify(fields),
+    });
+  }
 }

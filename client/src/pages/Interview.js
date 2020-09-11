@@ -8,21 +8,20 @@ import Typography from "@material-ui/core/Typography";
 import Button from "@material-ui/core/Button";
 import Snackbar from "@material-ui/core/Snackbar";
 import { UserContext } from "../utils/context/userContext";
+import InterviewApi from "../utils/api/interview";
 import io from "socket.io-client";
+import InterviewQuestions from "../components/InterviewQuestions";
+import InterviewConsole from "../components/InterviewConsole";
+import 'ace-builds/webpack-resolver';
 import "ace-builds/src-noconflict/theme-monokai";
-import "ace-builds/src-noconflict/mode-java";
-import "ace-builds/src-noconflict/mode-javascript";
-import "ace-builds/src-noconflict/mode-python";
 const useStyles = makeStyles((theme) => ({
   titleCard: {
     color: "#516BF6",
     marginBottom: 40,
     textAlign: "center",
   },
-  content: {},
   container: {
-    paddingTop: theme.spacing(10),
-    paddingBottom: theme.spacing(10),
+    minHeight: "calc(100vh - 100px)"
   },
   header: {
     backgroundColor: "#516BF6",
@@ -55,6 +54,7 @@ const useStyles = makeStyles((theme) => ({
   code: {
     width: "100%",
     display: "flex",
+    height: "80%"
   },
   video: {
     width: "90%",
@@ -76,21 +76,6 @@ const useStyles = makeStyles((theme) => ({
   },
   console: {
     backgroundColor: "#272822",
-  },
-  consoleContainer: {
-    padding: "30px 30px 30px 30px",
-  },
-  consoleHeader: {
-    backgroundColor: "#434343",
-    borderTopLeftRadius: 10,
-    borderTopRightRadius: 10,
-    height: 50,
-  },
-  consolecontent: {
-    backgroundColor: "#4C4C4C",
-    borderBottomLeftRadius: 6,
-    borderBottomRightRadius: 6,
-    height: 100,
   },
   codeContent: {
     paddingTop: 10,
@@ -119,6 +104,30 @@ const useStyles = makeStyles((theme) => ({
     color: "#FFFFFF",
     fontWeight: "500",
     lineHeight: "unset"
+  },
+  questionHeaderButton: {
+    borderRadius: "5em",
+    fontWeight: "500",
+    fontSize: 13,
+    color: "#5E6676",
+    border: "1px solid #FAFAFA",
+    padding: "10px 20px;",
+    boxShadow: "0px 0px 14px rgba(108, 115, 130, 0.1)",
+    marginRight: 10,
+    textTransform: "unset",
+    marginTop: 10,
+    "&:hover": {
+      backgroundColor: "#FFFFFF"
+    },
+    "&.active": {
+      color: "#516BF6",
+      backgroundColor: "#FFFFFF",
+      border: "1px solid #FFFFFF",
+    },
+  },
+  headerQuestion: {
+    textAlign: "center",
+    marginTop: 10
   }
 }));
 
@@ -135,6 +144,14 @@ const Interview = () => {
   const [yourSocketID, setYourSocketID] = useState("");
   const [codeValue, setCodeValue] = useState();
   const [stream, setStream] = useState();
+  const [interview, setInterview] = useState();
+  const [yourQuestionContent, setYourQuestionContent] = useState("<p>Given an array of integers <code>nums</code>&nbsp;and an integer <code>target</code>, return <em>indices of the two numbers such that they add up to <code>target</code></em>.</p><p>You may assume that each input would have <strong><em>exactly</em> one solution</strong>, and you may not use the <em>same</em> element twice.</p><p>You can return the answer in any order.</p><p>&nbsp;</p><p><strong>Example 1:</strong></p><pre><strong>Input:</strong> nums = [2,7,11,15], target = 9↵<strong>Output:</strong> [0,1]<strong>Output:</strong> Because nums[0] + nums[1] == 9, we return [0, 1].</pre><p><strong>Example 2:</strong></p><pre><strong>Input:</strong> nums = [3,2,4], target = 6<strong>Output:</strong> [1,2]</pre><p><strong>Example 3:</strong></p><pre><strong>Input:</strong> nums = [3,3], target = 6<strong>Output:</strong> [0,1]</pre><p>&nbsp;</p><p><strong>Constraints:</strong></p><ul><li><code>2 &lt;= nums.length &lt;= 10<sup>5</sup></code></li><li><code>-10<sup>9</sup> &lt;= nums[i] &lt;= 10<sup>9</sup></code></li><li><code>-10<sup>9</sup> &lt;= target &lt;= 10<sup>9</sup></code></li><li><strong>Only one valid answer exists.</strong></li></ul>");
+  const [participantQuestionContent, setParticipantQuestionContent] = useState("");
+  const [showYourQuestion, setShowYourQuestion] = useState(true);
+  const [showParticipantQuestion, setShowParticipantQuestion] = useState(false);
+  const [consoleOutputContent, setConsoleOutputContent] = useState("");
+  const [programmingLanguage, setProgrammingLanguage] = useState(0);
+  const [programmingLanguageName, setProgrammingLanguageName] = useState("javascript");
   const [receivingCall, setReceivingCall] = useState(false);
   const [caller, setCaller] = useState("");
   const [callerSignal, setCallerSignal] = useState();
@@ -151,6 +168,7 @@ const Interview = () => {
       let participantObj = interview.participants.find(
         (o) => o._id !== userData.user._id
       );
+      setInterview(interview);
       setparticipant({ id: participantObj._id, name: participantObj.firstName + ' ' + participantObj.lastName });
       socket.current = io.connect(SocketUrl, {
         query: `room=${interview._id}`,
@@ -174,6 +192,14 @@ const Interview = () => {
         setCaller(data.from);
         setCallerSignal(data.signal);
       });
+      socket.current.on("onConsoleChange", (data) => {
+        if (data.result.output) {
+          setConsoleOutputContent(data.result.output)
+        } else {
+          setConsoleOutputContent(data.result.errors)
+        }
+      });
+
     }
   }, [location]);
 
@@ -183,7 +209,57 @@ const Interview = () => {
     });
   };
 
+  const runInterviewCode = async (data) => {
+    let status;
+    setConsoleOutputContent("Start compiling code....")
+    InterviewApi.conpileCode(data)
+      .then((res) => {
+        status = res.status;
+        if (status < 500) return res.json();
+        else throw Error("Server error");
+      })
+      .then((res) => {
+        if (status === 200) {
+          if (res.output) {
+            setConsoleOutputContent(res.output)
+          } else {
+            setConsoleOutputContent(res.errors)
+          }
+        } else {
+          setConsoleOutputContent("Conpilation finished with error")
+        }
+      })
+      .catch((err) => {
+        console.log(err.message);
+      });
+  };
+
   const handleClickEndInterview = () => {
+  };
+
+  const handleRunCode = () => {
+    const body = {
+      language: programmingLanguage,
+      code: codeValue,
+      stdin: "",
+      interviewId: interview._id
+    }
+    runInterviewCode(body)
+  };
+
+  const handleClickSelectProgrammingLanguage = (data) => {
+    setProgrammingLanguage(data.value)
+    setProgrammingLanguageName(data.name)
+  };
+
+  const handleClickShowYourQuestion = () => {
+    setShowYourQuestion(true)
+    setShowParticipantQuestion(false)
+  };
+
+  const handleClickShowParticipantQuestion = () => {
+    setShowParticipantQuestion(true)
+    setShowYourQuestion(false)
   };
 
   const callParticipant = () => {
@@ -201,20 +277,23 @@ const Interview = () => {
       },
       stream: stream,
     });
-
     peer.on("signal", (data) => {
       socket.current.emit("callParticipant", {
         signalData: data,
         from: yourSocketID,
       });
     });
-
     peer.on("stream", (stream) => {
       if (partnerVideo.current) {
         partnerVideo.current.srcObject = stream;
       }
     });
-
+    peer.on('error', (err) => {
+      if (err.code == "ERR_CONNECTION_FAILURE") {
+        setCallAccepted(false);
+        setReceivingCall(false);
+      }
+    })
     socket.current.on("callAccepted", (signal) => {
       setCallAccepted(true);
       peer.signal(signal);
@@ -234,6 +313,12 @@ const Interview = () => {
     peer.on("stream", (stream) => {
       partnerVideo.current.srcObject = stream;
     });
+    peer.on('error', (err) => {
+      if (err.code == "ERR_CONNECTION_FAILURE") {
+        setCallAccepted(false);
+        setReceivingCall(false);
+      }
+    })
     peer.signal(callerSignal);
   }
 
@@ -287,13 +372,34 @@ const Interview = () => {
         </Button>
         </div>
       </div>
-      <Grid container>
-        <Grid item xs={12} sm={4} className={classes.question}></Grid>
+      <Grid container className={classes.container}>
+        <Grid item xs={12} sm={4} className={classes.question}>
+          <div className={classes.headerQuestion}>
+            <Button
+              variant="outlined"
+              size="small"
+              className={`${classes.questionHeaderButton} ${showYourQuestion ? 'active' : null}`}
+              onClick={handleClickShowYourQuestion}
+            >
+              Your Question
+            </Button>
+            <Button
+              variant="outlined"
+              size="small"
+              className={`${classes.questionHeaderButton} ${showParticipantQuestion ? 'active' : null}`}
+              onClick={handleClickShowParticipantQuestion}
+            >
+              Participant Question
+            </Button>
+          </div>
+          <InterviewQuestions content={yourQuestionContent} showContent={showYourQuestion}></InterviewQuestions>
+          <InterviewQuestions content={participantQuestionContent} showContent={showParticipantQuestion}></InterviewQuestions>
+        </Grid>
         <Grid item xs={12} sm={8} className={classes.editor}>
           <Grid item xs={12} sm={12} className={classes.code}>
-            <Grid item xs={12} sm={8}>
+            <Grid item xs={12} sm={8} >
               <AceEditor
-                mode="javascript"
+                mode={programmingLanguageName}
                 theme="monokai"
                 onChange={onChangeCode}
                 showPrintMargin={false}
@@ -301,14 +407,12 @@ const Interview = () => {
                 name="UNIQUE_ID_OF_DIV"
                 wrapEnabled={true}
                 width="100%"
-                height="60vh"
+                height="100%"
                 className={classes.codeContent}
                 value={codeValue}
                 setOptions={{
-                  enableBasicAutocompletion: true,
                   highlightSelectedWord: true,
-                  enableLiveAutocompletion: true,
-                  enableSnippets: false,
+                  useWorker: false,
                   tabSize: 2,
                 }}
               />
@@ -319,10 +423,12 @@ const Interview = () => {
             </Grid>
           </Grid>
           <Grid item xs={12} sm={12} className={classes.console}>
-            <div className={classes.consoleContainer}>
-              <div className={classes.consoleHeader}></div>
-              <div className={classes.consolecontent}></div>
-            </div>
+            <InterviewConsole
+              onRunCode={handleRunCode}
+              onChangeProgrammingLanguage={handleClickSelectProgrammingLanguage}
+              consoleOutput={consoleOutputContent}
+              defaultProgrammingLanguage={programmingLanguage}>
+            </InterviewConsole>
           </Grid>
         </Grid>
       </Grid>
