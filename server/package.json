@@ -23,6 +23,7 @@
     "lodash": "^4.17.20",
     "mongoose": "^5.10.0",
     "morgan": "~1.9.1",
+    "node-fetch": "^2.6.1",
     "nodemon": "^1.19.1",
     "passport": "^0.4.1",
     "passport-local": "^1.0.0",

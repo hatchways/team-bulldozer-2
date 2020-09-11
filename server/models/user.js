@@ -63,7 +63,7 @@ const BasicUserSchema = new Schema({
   firstName: String,
   lastName: String,
   isOwner: { type: Boolean, default: false },
-  questions: [QuestionSchema],
+  question: QuestionSchema,
 });
 
 module.exports = { UserSchema, UserModel, BasicUserSchema };

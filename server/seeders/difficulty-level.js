@@ -1,10 +1,9 @@
 const { DifficultyLevel } = require('../models/interview');
 
 const data = [
-  { name: 'Beginner' },
-  { name: 'Meduim' },
-  { name: 'Advanced' },
-  { name: 'Very Advanced' },
+  { name: 'Beginner', code: 1 },
+  { name: 'Meduim', code: 2 },
+  { name: 'Advanced', code: 3 },
 ];
 
 exports.canRun = async () => {

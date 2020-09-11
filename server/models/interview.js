@@ -6,6 +6,7 @@ const { BasicUserSchema } = require('./user');
 
 const DifficultyLevelSchema = new Schema({
   name: String,
+  code: Number,
 });
 
 const InterviewSchema = new Schema({
