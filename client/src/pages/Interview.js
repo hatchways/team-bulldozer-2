@@ -137,10 +137,7 @@ const Interview = () => {
   const partnerVideo = useRef();
   const socket = useRef();
   const SocketUrl = process.env.REACT_APP_SOCKET_URL;
-  const [participant, setparticipant] = useState({
-    name: "",
-    id: null
-  });
+  const [participant, setparticipant] = useState({ name: "", id: null });
   const [yourSocketID, setYourSocketID] = useState("");
   const [codeValue, setCodeValue] = useState();
   const [stream, setStream] = useState();
@@ -161,13 +158,17 @@ const Interview = () => {
   let history = useHistory();
 
   useEffect(() => {
+    // check if location has state
     if (!location.state) {
       history.push("/dashboard");
     } else {
+      // get interview data from state
       let interview = location.state.detail;
+      // get participant object from interview
       let participantObj = interview.participants.find(
         (o) => o._id !== userData.user._id
       );
+      // get user object from interview
       let userObj = interview.participants.find(
         (o) => o._id == userData.user._id
       );
@@ -175,28 +176,35 @@ const Interview = () => {
       setParticipantQuestionContent({ title: participantObj.question.title, body: participantObj.question.body })
       setYourQuestionContent({ title: userObj.question.title, body: userObj.question.body })
       setparticipant({ id: participantObj._id, name: participantObj.firstName + ' ' + participantObj.lastName });
+      // connect to socket
       socket.current = io.connect(SocketUrl, {
         query: `room=${interview._id}`,
       });
+      // open user stream and get audio and video autorization
       navigator.mediaDevices
         .getUserMedia({ video: true, audio: true })
         .then((stream) => {
           setStream(stream);
           if (userVideo.current) {
+            // add stream to userVideo ref
             userVideo.current.srcObject = stream;
           }
         });
+      // get event from socket when code changed
       socket.current.on("changeCode", (data) => {
         setCodeValue(data.code);
       });
+      // get user socket id
       socket.current.on("yourSocketID", (id) => {
         setYourSocketID(id);
       });
+      // get event when user is calling
       socket.current.on("onCalling", (data) => {
         setReceivingCall(true);
         setCaller(data.from);
         setCallerSignal(data.signal);
       });
+      // get event when console content changed
       socket.current.on("onConsoleChange", (data) => {
         if (data.result.output) {
           setConsoleOutputContent(data.result.output)
@@ -208,15 +216,16 @@ const Interview = () => {
     }
   }, [location]);
 
+  // on change code emit socket event with the code  
   const onChangeCode = (data) => {
     socket.current.emit("onChangeCode", {
       code: data,
     });
   };
 
+  // api for runnig code
   const runInterviewCode = async (data) => {
     let status;
-    setConsoleOutputContent("Start compiling code....")
     InterviewApi.conpileCode(data)
       .then((res) => {
         status = res.status;
@@ -242,6 +251,7 @@ const Interview = () => {
   const handleClickEndInterview = () => {
   };
 
+  // when click on run code 
   const handleRunCode = () => {
     const body = {
       language: programmingLanguage,
@@ -249,9 +259,12 @@ const Interview = () => {
       stdin: "",
       interviewId: interview._id
     }
+    setConsoleOutputContent("Start compiling code....")
+    // call api run code
     runInterviewCode(body)
   };
 
+  // when switch programming language
   const handleClickSelectProgrammingLanguage = (data) => {
     setProgrammingLanguage(data.value)
     setProgrammingLanguageName(data.name)
@@ -268,6 +281,7 @@ const Interview = () => {
   };
 
   const callParticipant = () => {
+    // create new instance of peer with credencials
     const peer = new Peer({
       initiator: true,
       trickle: false,
@@ -282,29 +296,34 @@ const Interview = () => {
       },
       stream: stream,
     });
+    // when get peer signal emit socket event to call participant this event id fired when the peer wants to send signaling data to the remote peer.
     peer.on("signal", (data) => {
       socket.current.emit("callParticipant", {
         signalData: data,
         from: yourSocketID,
       });
     });
+    // on peer stream event add stream to partnerVideo ref
     peer.on("stream", (stream) => {
       if (partnerVideo.current) {
         partnerVideo.current.srcObject = stream;
       }
     });
+    // handle peer error when user connection failed close the video section
     peer.on('error', (err) => {
       if (err.code == "ERR_CONNECTION_FAILURE") {
         setCallAccepted(false);
         setReceivingCall(false);
       }
     })
+    // when call accepted send peer signal event with data
     socket.current.on("callAccepted", (signal) => {
       setCallAccepted(true);
       peer.signal(signal);
     });
   };
 
+  // when click on accept call
   const acceptCall = () => {
     setCallAccepted(true);
     const peer = new Peer({
@@ -312,18 +331,22 @@ const Interview = () => {
       trickle: false,
       stream: stream,
     });
+    // on peer signal event emit a socket event to notify that the call has been accepted
     peer.on("signal", (data) => {
       socket.current.emit("acceptCall", { signal: data, to: caller });
     });
+    // on stream event add the stream to partnerVideo ref
     peer.on("stream", (stream) => {
       partnerVideo.current.srcObject = stream;
     });
+    // handle peer event error 
     peer.on('error', (err) => {
       if (err.code == "ERR_CONNECTION_FAILURE") {
         setCallAccepted(false);
         setReceivingCall(false);
       }
     })
+    // emit peer signal with caller signal 
     peer.signal(callerSignal);
   }
 
