@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const DifficultyLevelsSeeder = require('./difficulty-level');
+const QuestionSeeder = require('./question');
 
 async function dbseed() {
 // Connect to the database
@@ -10,6 +11,7 @@ async function dbseed() {
 
   const seeders = [
     DifficultyLevelsSeeder,
+    QuestionSeeder,
   ];
 
   seeders.forEach(async (seeder) => {
