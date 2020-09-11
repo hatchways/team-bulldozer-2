@@ -65,6 +65,14 @@ const JoinController = async (req, res) => {
       errors: 'Number of participants reach his limit',
     });
   }
+  // check only the owner of interview can join the room if the room already have an participant
+  if (interview.participants.length === 1) {
+    if (!interview.participants[0]._id.equals(interview.owner._id) && !user._id.equals(interview.owner._id)) {
+      return res.status(HttpStatus.BAD_REQUEST).send({
+        errors: 'Interview already have a participant only the creator of the interview can join the room',
+      });
+    }
+  }
   // Add the current use to list of interview's participants
   interview.participants.push(user);
   await interview.save();
