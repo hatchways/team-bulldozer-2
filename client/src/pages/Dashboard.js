@@ -80,7 +80,6 @@ const Dashboard = () => {
 
   const handleOpenSnackbar = (data) => {
     setStateSnackbar({ openSnackbar: data.openSnackbar, SnackbarMessage: data.SnackbarMessage });
-
   };
 
   const cancelInterview = (data) => {
@@ -94,6 +93,8 @@ const Dashboard = () => {
       .then((res) => {
         if (status === 200) {
           getInterviewList();
+        } else {
+          setStateSnackbar({ openSnackbar: true, SnackbarMessage: res.errors });
         }
       })
       .catch((err) => {

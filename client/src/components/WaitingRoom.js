@@ -187,7 +187,9 @@ const WaitingRoom = (props) => {
       query: `room=${interview._id}`,
     });
     socket.current.on("join", (data) => {
-      setParticipant(data.name);
+      if (data.id !== userData.user._id) {
+        setParticipant(data.name);
+      }
       setInterview(data.interview);
     });
     socket.current.on("exit", (data) => {
@@ -318,7 +320,7 @@ const WaitingRoom = (props) => {
                 </Typography>
               </div>
             </div>
-            {userData.user._id === interview.owner._id && (
+            {participant && userData.user._id === interview.owner._id && (
               <div className={classes.createButtonContainer}>
                 <Button
                   type="submit"

@@ -143,7 +143,7 @@ const UpcomingInterviews = (props) => {
 
 UpcomingInterviews.propTypes = {
   upcomingInterviewsList: PropTypes.array.isRequired,
-  onCancelWaitingRoom: PropTypes.func.isRequired
+  onCancelWaitingRoom: PropTypes.func
 };
 
 export default UpcomingInterviews;
