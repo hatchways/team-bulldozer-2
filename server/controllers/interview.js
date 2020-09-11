@@ -77,6 +77,7 @@ const JoinController = async (req, res) => {
   const questions = await Question.find({ level: interview.level.code });
   const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
   const participant = {
+    _id: user._id,
     email: user.email,
     firstName: user.firstName,
     lastName: user.lastName,
