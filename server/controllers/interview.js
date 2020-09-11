@@ -5,6 +5,7 @@ const { DifficultyLevel, Interview } = require('../models/interview');
 const { PublishOn } = require('../utils/redis');
 const { CreateRedisConnectionMessage } = require('../websockets/helpers');
 const InterviewService = require('../services/interviewService');
+const Question = require('../models/question').QuestionModel;
 
 // Return question levels list
 const GetDifficultyLevelsController = async (req, res) => {
@@ -67,14 +68,23 @@ const JoinController = async (req, res) => {
   }
   // check only the owner of interview can join the room if the room already have an participant
   if (interview.participants.length === 1) {
-    if (!interview.participants[0]._id.equals(interview.owner._id) && !user._id.equals(interview.owner._id)) {
+    if (interview.owner._id !== user._id && interview.participants[0]._id === user._id) {
       return res.status(HttpStatus.BAD_REQUEST).send({
         errors: 'Interview already have a participant only the creator of the interview can join the room',
       });
     }
   }
+  const questions = await Question.find({ level: interview.level.code });
+  const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
+  const participant = {
+    email: user.email,
+    firstName: user.firstName,
+    lastName: user.lastName,
+    isOwner: user.isOwner,
+    question: randomQuestion,
+  };
   // Add the current use to list of interview's participants
-  interview.participants.push(user);
+  interview.participants.push(participant);
   await interview.save();
 
   // Notify the creator of the interview that another user just join the room
