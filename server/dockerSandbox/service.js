@@ -1,3 +1,4 @@
+/* eslint-disable no-path-concat */
 /* eslint-disable no-unused-vars */
 /* eslint-disable new-cap */
 const PATH = require('path');
@@ -12,7 +13,7 @@ exports.compile = (language, code, stdin, done) => {
   const folder = `temp${fileSep}${randomVal}`;
   // current working path
   const path = __dirname + fileSep;
-  // name of virtual machine that we want to execute
+  // name of docker image that we want to execute
   const vmName = 'houssemdev/virtual_machine:1.0';
   // Timeout Value, In Seconds
   const timeoutValue = 20;
@@ -31,5 +32,4 @@ exports.compile = (language, code, stdin, done) => {
       output: data, langid: language, code, errors: err, time: execTime,
     });
   });
-  // console.log("Data: received: "+ data)
 };

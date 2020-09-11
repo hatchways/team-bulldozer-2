@@ -1,7 +1,7 @@
 /* eslint-disable no-underscore-dangle */
 const cryptoRandomString = require('crypto-random-string');
 const { PublishOn } = require('../utils/redis');
-const { CreateRedisMessage } = require('../websockets/helpers');
+const { CreateRedisConnectionMessage } = require('../websockets/helpers');
 const { Interview } = require('../models/interview');
 
 exports.create = async (user, level, title) => {
@@ -27,5 +27,5 @@ exports.exit = async (user, interview) => {
     await interview.save();
   }
   // Notify the creator of the interview that another user just leave the room
-  PublishOn(interview._id.toString(), CreateRedisMessage(interview, user, 'exit'));
+  PublishOn(interview._id.toString(), CreateRedisConnectionMessage(interview, user, 'exit'));
 };

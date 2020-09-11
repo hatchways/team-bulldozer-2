@@ -3,7 +3,7 @@ const HttpStatus = require('http-status-codes');
 const _ = require('lodash');
 const { DifficultyLevel, Interview } = require('../models/interview');
 const { PublishOn } = require('../utils/redis');
-const { CreateRedisMessage } = require('../websockets/helpers');
+const { CreateRedisConnectionMessage } = require('../websockets/helpers');
 const InterviewService = require('../services/interviewService');
 
 // Return question levels list
@@ -65,18 +65,12 @@ const JoinController = async (req, res) => {
       errors: 'Number of participants reach his limit',
     });
   }
-  // check only the owner of interview can join the room if the room already have an participant
-  if (interview.participants.length === 1 && interview.participants[0].owner._id !== user._id) {
-    return res.status(HttpStatus.BAD_REQUEST).send({
-      errors: 'Interview already have a participant only the creator of the interview can join the room',
-    });
-  }
   // Add the current use to list of interview's participants
   interview.participants.push(user);
   await interview.save();
 
   // Notify the creator of the interview that another user just join the room
-  PublishOn(interview._id.toString(), CreateRedisMessage(interview, user, 'join'));
+  PublishOn(interview._id.toString(), CreateRedisConnectionMessage(interview, user, 'join'));
   return res.status(HttpStatus.OK).send(interview);
 };
 
@@ -95,8 +89,10 @@ const CancelController = async (req, res) => {
       errors: 'You can\'t cancel the interview there is a participant in the waitig room',
     });
   }
-  // Add the current use to list of interview's participants
-  await interview.remove();
+
+  interview.isCancelled = true;
+  await interview.save();
+
   return res.status(HttpStatus.OK).send(interview);
 };
 
