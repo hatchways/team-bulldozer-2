@@ -10,6 +10,8 @@ const config = require('./config');
 const { SubcribeTo } = require('../utils/redis');
 const { Interview } = require('../models/interview');
 const InterviewService = require('../services/interviewService');
+const { PublishOn } = require('../utils/redis');
+const { CreateRedisConnectionMessage } = require('./helpers');
 
 const sessionStore = new RedisStore({
   client: redisUrl.connect(process.env.REDIS_URL),
@@ -59,6 +61,8 @@ module.exports = (server) => {
       // remove the user from the list of participants and notify the other user
       if (interview) {
         await InterviewService.exit(user, interview);
+        // Notify the creator of the interview that another user just leave the room
+        PublishOn(interview._id.toString(), CreateRedisConnectionMessage(interview, user, 'exit'));
       }
     });
     // Handle start interview event

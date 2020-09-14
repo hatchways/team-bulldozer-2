@@ -1,133 +1,78 @@
 /* eslint-disable no-underscore-dangle */
 const HttpStatus = require('http-status-codes');
-const _ = require('lodash');
 const { DifficultyLevel, Interview } = require('../models/interview');
 const { PublishOn } = require('../utils/redis');
 const { CreateRedisConnectionMessage } = require('../websockets/helpers');
 const InterviewService = require('../services/interviewService');
-const Question = require('../models/question').QuestionModel;
 
+// return an interview object if it exists
+async function getIfExists(path, res) {
+  const interview = await Interview.findOne({ path }, { __v: false }).exec();
+  // check if interview exists in the database
+  if (interview === null) {
+    return res.status(HttpStatus.NOT_FOUND).send({
+      errors: 'interview not found',
+    });
+  }
+  return interview;
+}
 // Return question levels list
 const GetDifficultyLevelsController = async (req, res) => {
   const levels = await DifficultyLevel.find({}, { __v: false }).exec();
-  res.status(HttpStatus.OK).send(levels);
+
+  return res.status(HttpStatus.OK).send(levels);
 };
 
 // Create a new interviews on fonction of the title and the difficulty level id
 const CreateController = async (req, res) => {
-  const { title } = req.body;
-  const { user } = req;
-
   const level = await DifficultyLevel.findOne({ _id: req.body.level }, { __v: false }).exec();
   if (!level) {
     return res.status(HttpStatus.NOT_FOUND).send({ errors: { level: [`Level ${level} not found!`] } });
   }
-  const newInterview = InterviewService.create(user, level, title);
+  const newInterview = InterviewService.create(req.user, level, req.body.title);
 
   return res.status(HttpStatus.CREATED).send(newInterview);
 };
 
 // get the list of interviews for the connected user
-
 const GetAllController = async (req, res) => {
-  const currentuser = req.user;
-  const interviews = await Interview.find({ 'owner._id': currentuser._id }, { __v: false }).exec();
+  const interviews = await InterviewService.GetInterviewsByOwner(req.user._id);
 
-  const upcoming = _.filter(interviews, (item) => item.startTime === null
-    && item.endTime === null && !item.isCancelled);
-  const passed = _.differenceBy(interviews, upcoming, '_id');
-
-  return res.status(HttpStatus.OK).send({
-    upcoming,
-    passed,
-  });
+  return res.status(HttpStatus.OK).send(interviews);
 };
 
 const JoinController = async (req, res) => {
-  const { path } = req.params;
   const { user } = req;
-
-  const interview = await Interview.findOne({ path }, { __v: false }).exec();
-  // check if interview exists in the database
-  if (interview === null) {
-    return res.status(HttpStatus.NOT_FOUND).send({
-      errors: 'interview not found',
-    });
-  }
-  // check if the user is not already joined the room
-  if (interview.participants.id(user._id) !== null) {
-    return res.status(HttpStatus.BAD_REQUEST).send({
-      errors: 'the user is already joined',
-    });
-  }
-  // check if the number of participants does not exceed 2
-  if (interview.participants.length === 2) {
-    return res.status(HttpStatus.BAD_REQUEST).send({
-      errors: 'Number of participants reach his limit',
-    });
-  }
-  // check only the owner of interview can join the room if the room already have an participant
-  if (interview.participants.length === 1) {
-    if (interview.owner._id !== user._id && interview.participants[0]._id === user._id) {
-      return res.status(HttpStatus.BAD_REQUEST).send({
-        errors: 'Interview already have a participant only the creator of the interview can join the room',
-      });
-    }
-  }
-  const questions = await Question.find({ level: interview.level.code });
-  const randomQuestion = questions[Math.floor(Math.random() * questions.length)];
-  const participant = {
-    _id: user._id,
-    email: user.email,
-    firstName: user.firstName,
-    lastName: user.lastName,
-    isOwner: user.isOwner,
-    question: randomQuestion,
-  };
-  // Add the current use to list of interview's participants
-  interview.participants.push(participant);
-  await interview.save();
-
+  const interview = await getIfExists(req.params.path, res);
+  // Add the user to list of participants
+  InterviewService.join(user, interview);
   // Notify the creator of the interview that another user just join the room
   PublishOn(interview._id.toString(), CreateRedisConnectionMessage(interview, user, 'join'));
+
   return res.status(HttpStatus.OK).send(interview);
 };
 
+const ExitController = async (req, res) => {
+  const interview = await getIfExists(req.params.path, res);
+  await InterviewService.exit(req.user, interview);
+  // Notify the creator of the interview that another user just leave the room
+  PublishOn(interview._id.toString(), CreateRedisConnectionMessage(interview, req.user, 'exit'));
+
+  return res.status(HttpStatus.NO_CONTENT).send();
+};
+
 const CancelController = async (req, res) => {
-  const { path } = req.params;
-  const interview = await Interview.findOne({ path }, { __v: false }).exec();
-  // check if interview exists in the database
-  if (interview === null) {
-    return res.status(HttpStatus.NOT_FOUND).send({
-      errors: 'interview not found',
-    });
-  }
+  const interview = await getIfExists(req.params.path, res);
   // check if the number of participants does not exceed 1
   if (interview.participants.length === 1) {
     return res.status(HttpStatus.BAD_REQUEST).send({
       errors: 'You can\'t cancel the interview there is a participant in the waitig room',
     });
   }
-
   interview.isCancelled = true;
   await interview.save();
 
   return res.status(HttpStatus.OK).send(interview);
-};
-
-const ExitController = async (req, res) => {
-  const { path } = req.params;
-  const { user } = req;
-
-  const interview = await Interview.findOne({ path }, { __v: false }).exec();
-  // check if interview exists in the database
-  if (interview === null) {
-    return res.status(HttpStatus.NOT_FOUND).send({
-      errors: 'interview not found',
-    });
-  }
-  await InterviewService.exit(user, interview);
-  return res.status(HttpStatus.NO_CONTENT).send();
 };
 
 module.exports = {
