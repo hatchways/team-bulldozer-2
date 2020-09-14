@@ -18,4 +18,13 @@ export const theme = createMuiTheme({
   palette: {
     primary: { main: "#516BF6" },
   },
+  overrides: {
+    MuiCssBaseline: {
+      '@global': {
+        p: {
+          fontFamily: '"Open Sans"',
+        },
+      },
+    },
+  },
 });

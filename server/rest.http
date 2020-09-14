@@ -52,3 +52,13 @@ GET  http://localhost:3001/interviews/-0tIX4wSLk/join
 
 ### Exit interview room
 GET  http://localhost:3001/interviews/-0tIX4wSLk/exit
+
+### Compile code 
+POST  http://localhost:3001/compile
+Content-Type: application/json
+
+{
+    "language" : "0",
+    "code" : "console.log('hello from container');",
+    "stdin" : ""
+}

@@ -57,10 +57,11 @@ const useStyles = makeStyles((theme) => ({
   },
 }));
 
-const UpcomingInterviews = ({ upcomingInterviewsList }) => {
+const UpcomingInterviews = (props) => {
   const classes = useStyles();
   const [openWaitingRoom, setOpenWaitingRoom] = useState(false);
   const [waitingRoomData, setWaitingRoomData] = useState({});
+  const { upcomingInterviewsList, onCancelWaitingRoom } = props;
 
   const handleClickOpenWaitingRoom = (data) => (event) => {
     setWaitingRoomData(data);
@@ -69,6 +70,10 @@ const UpcomingInterviews = ({ upcomingInterviewsList }) => {
 
   const handleCloseWaitingRoom = (value) => {
     setOpenWaitingRoom(false);
+  };
+
+  const handleClickCancelWaitingRoom = (value) => {
+    onCancelWaitingRoom(value)
   };
 
   return (
@@ -111,7 +116,7 @@ const UpcomingInterviews = ({ upcomingInterviewsList }) => {
               </Typography>
             </div>
             <div className={classes.itemContent}>
-              <Button variant="outlined" className={classes.button}>
+              <Button variant="outlined" className={classes.button} onClick={() => handleClickCancelWaitingRoom(value)}>
                 Cancel
               </Button>
               <Button
@@ -138,6 +143,7 @@ const UpcomingInterviews = ({ upcomingInterviewsList }) => {
 
 UpcomingInterviews.propTypes = {
   upcomingInterviewsList: PropTypes.array.isRequired,
+  onCancelWaitingRoom: PropTypes.func
 };
 
 export default UpcomingInterviews;

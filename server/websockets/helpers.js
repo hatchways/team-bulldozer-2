@@ -1,5 +1,5 @@
 /* eslint-disable no-underscore-dangle */
-const CreateRedisMessage = (interview, user, action) => {
+const CreateRedisConnectionMessage = (interview, user, action) => {
   const message = {
     action,
     content: {
@@ -12,4 +12,16 @@ const CreateRedisMessage = (interview, user, action) => {
   return JSON.stringify(message);
 };
 
-module.exports = { CreateRedisMessage };
+const CreateRedisCodeCompilationMessage = (interview, compilationResult, action) => {
+  const message = {
+    action,
+    content: {
+      result: compilationResult,
+      interview,
+    },
+  };
+
+  return JSON.stringify(message);
+};
+
+module.exports = { CreateRedisConnectionMessage, CreateRedisCodeCompilationMessage };

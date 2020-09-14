@@ -7,6 +7,7 @@ import Register from "./pages/Register";
 import RouteContainer from "./routes/RouteContainer";
 import Login from "./pages/login";
 import Dashboard from "./pages/Dashboard";
+import Interview from "./pages/Interview";
 import WaitingRoom from "./components/WaitingRoom";
 import "./App.css";
 import AuthApi from "./utils/api/auth";
@@ -76,6 +77,11 @@ function App() {
             <RouteContainer
               path="/dashboard"
               component={Dashboard}
+              isPrivateRoute
+            />
+            <RouteContainer
+              path="/interview"
+              component={Interview}
               isPrivateRoute
             />
             <RouteContainer

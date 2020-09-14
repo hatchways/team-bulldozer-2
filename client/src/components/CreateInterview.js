@@ -115,7 +115,7 @@ const CreateInterview = (props) => {
           Create
         </Typography>
         <form onSubmit={handleSubmit(onSubmit)} noValidate>
-          <FormControl variant="outlined" className={classes.formControl}>
+          <FormControl variant="outlined" >
             <Typography component="h6" variant="h6" className={classes.label}>
               Difficulty level
             </Typography>

@@ -1,13 +1,12 @@
 import React, { useContext, useState } from "react";
 import { Typography } from "@material-ui/core";
 import { withStyles, makeStyles } from "@material-ui/core/styles";
-import { useHistory } from "react-router-dom";
+import { useHistory, NavLink } from "react-router-dom";
 import AppBar from "@material-ui/core/AppBar";
 import Toolbar from "@material-ui/core/Toolbar";
 import AvatarImg from "../assets/images/avatar.png";
 import Logo from "../assets/images/logo.png";
 import Avatar from "@material-ui/core/Avatar";
-import Link from "@material-ui/core/Link";
 import Menu from '@material-ui/core/Menu';
 import MenuItem from '@material-ui/core/MenuItem';
 import { UserContext } from "../utils/context/userContext";
@@ -30,7 +29,10 @@ const useStyles = makeStyles((theme) => ({
     fontWeight: 600,
     fontSize: 16,
     lineHeight: "22px",
-    letterSpacing: "-0.5px",
+    textDecoration: "unset"
+  },
+  activeLink: {
+    color: "#516BF6",
   },
   appBar: {
     backgroundColor: "#FFFFFF",
@@ -70,10 +72,9 @@ const StyledMenu = withStyles({
 
 const AppHeader = () => {
   const classes = useStyles();
-  let history = useHistory();
-  const preventDefault = (event) => event.preventDefault();
+  const history = useHistory();
   const [avatarMenu, setAvatarMenu] = useState(null);
-  const { userData } = useContext(UserContext);
+  const { userData, setUserData } = useContext(UserContext);
 
   const handleClickAvatarMenu = (event) => {
     setAvatarMenu(event.currentTarget);
@@ -88,11 +89,12 @@ const AppHeader = () => {
     AuthApi.logout()
       .then((res) => {
         status = res.status;
-        if (status < 500) return res.json();
+        if (status < 500) return res.text();
         else throw Error("Server error");
       })
       .then((res) => {
         if (status === 200) {
+          setUserData(false)
           history.push("/login");
         }
       })
@@ -107,30 +109,30 @@ const AppHeader = () => {
         <div className={classes.logoContainer}>
           <img className={classes.logo} src={Logo} alt="logo" />
         </div>
-        <Link
-          href="#"
-          onClick={preventDefault}
-          color="primary"
+        <NavLink
+          exact
+          to="/dashboard"
           className={classes.links}
+          activeClassName={classes.activeLink}
         >
           Dashboard
-        </Link>
-        <Link
-          href="#"
-          onClick={preventDefault}
-          color="inherit"
+        </NavLink >
+        <NavLink
+          exact
+          to="/blog"
           className={classes.links}
+          activeClassName={classes.activeLink}
         >
           Blog
-        </Link>
-        <Link
-          href="#"
-          onClick={preventDefault}
-          color="inherit"
+        </NavLink >
+        <NavLink
+          exact
+          to="/faq"
           className={classes.links}
+          activeClassName={classes.activeLink}
         >
           Faq
-        </Link>
+        </NavLink >
         <div>
           <Avatar
             alt={
